@@ -15,6 +15,7 @@ A Python module for robust execution monitoring and error logging. This module p
 3. [Features](#features)
 4. [Installation](#installation)
 5. [Usage](#usage)
+   
    a. [Example Usage](#timer_example)
    
 
