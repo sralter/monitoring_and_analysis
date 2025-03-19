@@ -15,9 +15,9 @@ A Python module for robust execution monitoring and error logging. This module p
 3. [Features](#features)
 4. [Installation](#install)
 5. [Usage](#usage)
-   > [Timer Example Usage](#timer_example)
-   > [Error Example Usage](#error_example)
-   > [Combined Example Usage](#combined)
+   * [Timer Example Usage](#timer_example)
+   * [Error Example Usage](#error_example)
+   * [Combined Example Usage](#combined)
 6. [Customization](#custom)
 7. [Contributing](#contribute)
    
@@ -152,5 +152,7 @@ Provide your own sanitizer function to remove or mask sensitive data from logged
 Both Timer and ErrorCatcher use rotating file handlers. You can adjust the max file size and backup count by passing parameters to the decorators if needed.
 
 ## Contributing <a name='contribute'></a>
+
+[Back to TOC](#toc)
 
 Feel free to fork this repository and submit pull requests if you have improvements or bug fixes.
