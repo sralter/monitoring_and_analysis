@@ -10,11 +10,13 @@ A Python module for robust execution monitoring and error logging. This module p
 
 ## Table of Contents <a name='toc'></a>
 
-- [monitoring](#monitoring)
-  - [Overview ](#overview-)
-  - [Table of Contents ](#table-of-contents-)
-  - [Features ](#features-)
-  - [Installation ](#installation-)
+1. [Overview ](#overview)
+2. [Table of Contents](#toc)
+3. [Features](#features)
+4. [Installation](#installation)
+5. [Usage](#usage)
+   a. [Example Usage](#timer_example)
+   
 
 ## Features <a name='features'></a>
 * **High-Resolution Timing**: Uses time.perf_counter() for precise measurements.
@@ -25,3 +27,20 @@ A Python module for robust execution monitoring and error logging. This module p
 * **Log Rotation**: Automatically rotates log files (default: 10 MB max size, 5 backups).
 
 ## Installation <a name='install'></a>
+
+Simply copy the monitoring.py file into your project. Ensure that you have the following Python packages installed:
+* `psutil`
+* `pandas`
+* `geopandas` (if you plan to log dataframes)
+* (Standard library modules such as `logging`, `csv`, `json`, `functools`, etc., are included with Python.)
+
+You can install `psutil` using `pip`:
+`pip install psutil`
+
+## Usage <a name='usage'></a>
+
+Import the decorators from the module and apply them to your functions. You can use them individually or together.
+
+### Example with the Timer Decorator <a name='timer_example'></a>
+
+```
