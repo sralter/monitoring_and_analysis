@@ -29,6 +29,13 @@ A Python module for robust execution monitoring and error logging. This module p
 * **High-Resolution Timing**: Uses time.perf_counter() for precise measurements.
 * **Process-Specific Metrics**: Tracks CPU time and memory usage for your process.
 * **Structured Logging**: Outputs logs in JSON format for easy integration with log aggregation tools.
+  * Saves log files in the working directory with the following structure:
+  ```plaintext
+  logs/
+  ├── timing.log            # JSON-formatted performance logs (rotates at 10 MB, up to 5 backups)
+  ├── timing_results.csv    # CSV file containing timing, CPU, and memory metrics for each function call
+  └── error.log             # JSON-formatted error log capturing exceptions (rotates at 10 MB, up to 5 backups)
+  ```
 * **Error Logging**: Separates error logging from performance logs for clarity and monitoring.
 * **Customizable Sanitation**: Optionally sanitize logged arguments or error messages to mask sensitive data.
 * **Log Rotation**: Automatically rotates log files (default: 10 MB max size, 5 backups).
@@ -65,7 +72,7 @@ import time
 
 @Timer(max_arg_length=100, sanitize_func=lambda s: s.replace("secret", "*****"))
 def my_function(x, y):
-    """Dummy function that simulates processing."""
+    """Dummy function that simulates processing with the timer decorator."""
     logging.info("My function started")
     time.sleep(2)  # Simulate processing
     logging.info("My function completed")
@@ -91,7 +98,7 @@ import logging
 
 @ErrorCatcher(sanitize_func=lambda s: s.replace("password", "*****"))
 def error_function():
-    """Dummy function that simulates processing with an error."""
+    """Dummy function that simulates processing with an error and the error-catching decorator."""
     logging.info("Error function starting")
     # Deliberately raise an exception to test error logging.
     raise ValueError("This is a test error with a secret password!")
@@ -123,6 +130,7 @@ import time
 @ErrorCatcher(sanitize_func=sanitizer)
 @Timer(max_arg_length=100, sanitize_func=sanitizer)
 def combined_function(a, b):
+    """Dummy function to demonstrate both uses of monitoring decorators."""
     logging.info("Combined function started")
     time.sleep(1)
     if a < 0:
