@@ -30,21 +30,32 @@ class JSONFormatter(logging.Formatter):
             "uuid": record.__dict__.get("uuid", "N/A")
         }
         return json.dumps(log_record)
-    
+
 class Timer:
-    """A decorator for timing and profiling function execution."""
+    """A decorator for timing and profiling function execution.
+    
+    By default, results are saved as a CSV file. With results_format="parquet",
+    results are stored in a Parquet file instead.
+    """
     
     def __init__(self, log_to_console=True, log_to_file=True, track_resources=True, 
-                 max_arg_length=None, sanitize_func=None):
+                 max_arg_length=None, sanitize_func=None, results_format="csv"):
         self.log_to_console = log_to_console
         self.log_to_file = log_to_file
         self.track_resources = track_resources
         self.max_arg_length = max_arg_length
         self.sanitize_func = sanitize_func
+        self.results_format = results_format.lower()  # "csv" or "parquet"
 
         self.log_dir = "logs"
         os.makedirs(self.log_dir, exist_ok=True)
-        self.RESULTS_FILE = os.path.join(self.log_dir, "timing_results.csv")
+        if self.results_format == "csv":
+            self.RESULTS_FILE = os.path.join(self.log_dir, "timing_results.csv")
+        elif self.results_format == "parquet":
+            self.RESULTS_FILE = os.path.join(self.log_dir, "timing_results.parquet")
+            self._results_buffer = []  # internal buffer for parquet results
+        else:
+            raise ValueError("results_format must be either 'csv' or 'parquet'")
         self.LOG_FILE = os.path.join(self.log_dir, "timing.log")
 
         self._ensure_files_exist()
@@ -52,14 +63,14 @@ class Timer:
 
     def _ensure_files_exist(self):
         """Ensure necessary files exist with proper headers."""
-        if not os.path.exists(self.RESULTS_FILE):
-            with open(self.RESULTS_FILE, mode="w", newline="") as file:
-                writer = csv.writer(file)
-                # Added Final Memory Usage column
-                writer.writerow(["Timestamp", "UUID", "Function Name", "Execution Time (s)", 
-                                 "CPU Time (sec)", "Memory Change (MB)", "Final Memory Usage (MB)", "Arguments", "Log Message"])
-            print(f"Created fresh {self.RESULTS_FILE}")
-
+        if self.results_format == "csv":
+            if not os.path.exists(self.RESULTS_FILE):
+                with open(self.RESULTS_FILE, mode="w", newline="") as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Timestamp", "UUID", "Function Name", "Execution Time (s)", 
+                                     "CPU Time (sec)", "Memory Change (MB)", "Final Memory Usage (MB)", "Arguments", "Log Message"])
+                print(f"Created fresh {self.RESULTS_FILE}")
+        # For Parquet, we use the internal buffer—no file is created initially.
         if not os.path.exists(self.LOG_FILE):
             open(self.LOG_FILE, "w").close()
             print(f"Created fresh {self.LOG_FILE}")
@@ -69,26 +80,38 @@ class Timer:
         logging.shutdown()
         for handler in logging.root.handlers[:]:
             logging.root.removeHandler(handler)
-
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
-
-        # Rotating file handler for timing.log (10 MB max, 5 backups)
+        # Rotating handler for timing.log (10 MB max, 5 backups)
         rotating_handler = RotatingFileHandler(self.LOG_FILE, maxBytes=10*1024*1024, backupCount=5)
         rotating_handler.setFormatter(JSONFormatter())
-
         # Console handler (plain text)
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-
         logger.addHandler(rotating_handler)
         logger.addHandler(console_handler)
 
-    def _save_to_csv(self, timestamp, call_uuid, function_name, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message):
-        """Save timing and resource results to the CSV file."""
-        with open(self.RESULTS_FILE, mode="a", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow([timestamp, call_uuid, function_name, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message])
+    def _save_results(self, timestamp, call_uuid, function_name, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message):
+        """Save timing and resource results to the chosen file format."""
+        if self.results_format == "csv":
+            with open(self.RESULTS_FILE, mode="a", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow([timestamp, call_uuid, function_name, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message])
+        elif self.results_format == "parquet":
+            row = {
+                "Timestamp": timestamp,
+                "UUID": call_uuid,
+                "Function Name": function_name,
+                "Execution Time (s)": elapsed_time,
+                "CPU Time (sec)": cpu_time,
+                "Memory Change (MB)": mem_change,
+                "Final Memory Usage (MB)": final_mem,
+                "Arguments": args_repr,
+                "Log Message": log_message
+            }
+            self._results_buffer.append(row)
+            df = pd.DataFrame(self._results_buffer)
+            df.to_parquet(self.RESULTS_FILE, index=False)
 
     def __call__(self, func):
         """Wrap the function call with timing and logging."""
@@ -103,7 +126,7 @@ class Timer:
             try:
                 result = func(*args, **kwargs)
             except Exception as e:
-                logging.exception(f"Function `{func.__name__}` raised an exception",
+                logging.exception("Function `%s` raised an exception", func.__name__,
                                   extra={"function_name": func.__name__, "uuid": call_uuid})
                 raise
 
@@ -118,7 +141,7 @@ class Timer:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             def safe_serialize(obj):
-                """Convert args/kwargs to string with optional sanitization and length control."""
+                """Convert args/kwargs to string with optional sanitization and truncation."""
                 if isinstance(obj, (pd.DataFrame, gpd.GeoDataFrame)):
                     return f"<DataFrame with {len(obj)} rows>"
                 try:
@@ -144,7 +167,7 @@ class Timer:
             logging.info(log_message, extra={"function_name": func.__name__, "uuid": call_uuid})
 
             if self.log_to_file:
-                self._save_to_csv(timestamp, call_uuid, func.__name__, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message)
+                self._save_results(timestamp, call_uuid, func.__name__, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message)
 
             return result
 
@@ -154,57 +177,112 @@ class ErrorCatcher:
     """
     A decorator for catching and logging exceptions.
     
-    Logs error details with a unique UUID and function name to a dedicated error log file,
-    using log rotation (default: 10 MB max size, 5 backups). Optionally sanitizes the exception message.
+    Logs error details with a unique UUID and function name to a dedicated error log file
+    (using log rotation, default: 10 MB max size, 5 backups). Optionally sanitizes the exception
+    message and saves error details to a results file in CSV or Parquet format.
     """
     
     def __init__(self, log_to_console=True, log_to_file=True,
                  error_log_file=None, max_bytes=10*1024*1024, backup_count=5,
-                 sanitize_func=None):
+                 sanitize_func=None, results_format="csv", max_arg_length=None):
         self.log_to_console = log_to_console
         self.log_to_file = log_to_file
         self.max_bytes = max_bytes
         self.backup_count = backup_count
         self.sanitize_func = sanitize_func
+        self.max_arg_length = max_arg_length
 
+        self.results_format = results_format.lower()
+        if self.results_format == "csv":
+            self.RESULTS_FILE = os.path.join("logs", "error_results.csv")
+        elif self.results_format == "parquet":
+            self.RESULTS_FILE = os.path.join("logs", "error_results.parquet")
+            self._results_buffer = []
+        else:
+            raise ValueError("results_format must be either 'csv' or 'parquet'")
+            
         if error_log_file is None:
             self.error_log_file = os.path.join("logs", "error.log")
         else:
             self.error_log_file = error_log_file
         
         os.makedirs("logs", exist_ok=True)
+        self._ensure_error_file()
         self._setup_error_logging()
-
+    
+    def _ensure_error_file(self):
+        """Ensure the error results file exists (for CSV mode)."""
+        if self.results_format == "csv":
+            if not os.path.exists(self.RESULTS_FILE):
+                with open(self.RESULTS_FILE, mode="w", newline="") as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Timestamp", "UUID", "Function Name", "Error Message", "Arguments"])
+                print(f"Created fresh {self.RESULTS_FILE}")
+    
     def _setup_error_logging(self):
-        """Set up a dedicated logger for error catching with JSON formatting and rotation."""
+        """Set up a dedicated logger for error catching with JSON formatting and log rotation."""
         self.logger = logging.getLogger("error_catcher")
         self.logger.setLevel(logging.ERROR)
         self.logger.handlers = []
-        
         if self.log_to_file:
             rotating_handler = RotatingFileHandler(self.error_log_file, maxBytes=self.max_bytes, backupCount=self.backup_count)
             rotating_handler.setFormatter(JSONFormatter())
             self.logger.addHandler(rotating_handler)
-        
         if self.log_to_console:
             console_handler = logging.StreamHandler()
             console_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
             self.logger.addHandler(console_handler)
-
+    
+    def _safe_serialize(self, obj):
+        """Serialize an object to string with optional sanitization and truncation."""
+        try:
+            s = str(obj)
+        except Exception:
+            s = "<unserializable>"
+        if self.sanitize_func:
+            s = self.sanitize_func(s)
+        if self.max_arg_length is not None and len(s) > self.max_arg_length:
+            s = s[:self.max_arg_length] + "..."
+        return s
+    
+    def _save_error(self, timestamp, call_uuid, function_name, error_msg, args_repr):
+        """Save error details to the chosen results file format."""
+        if self.results_format == "csv":
+            with open(self.RESULTS_FILE, mode="a", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow([timestamp, call_uuid, function_name, error_msg, args_repr])
+        elif self.results_format == "parquet":
+            row = {
+                "Timestamp": timestamp,
+                "UUID": call_uuid,
+                "Function Name": function_name,
+                "Error Message": error_msg,
+                "Arguments": args_repr
+            }
+            self._results_buffer.append(row)
+            df = pd.DataFrame(self._results_buffer)
+            df.to_parquet(self.RESULTS_FILE, index=False)
+    
     def __call__(self, func):
-        """Wrap the function call to catch exceptions and log them."""
+        """Wrap the function call to catch exceptions, log them, and save error details."""
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             call_uuid = str(uuid.uuid4())
             try:
                 return func(*args, **kwargs)
             except Exception as e:
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 error_msg = str(e)
                 if self.sanitize_func:
                     error_msg = self.sanitize_func(error_msg)
+                args_repr = json.dumps({
+                    "args": [self._safe_serialize(arg) for arg in args],
+                    "kwargs": {k: self._safe_serialize(v) for k, v in kwargs.items()}
+                })
                 self.logger.exception(
-                    f"Function `{func.__name__}` raised an exception: {error_msg}",
+                    "Function `%s` raised an exception: %s", func.__name__, error_msg,
                     extra={"function_name": func.__name__, "uuid": call_uuid}
                 )
+                self._save_error(timestamp, call_uuid, func.__name__, error_msg, args_repr)
                 raise
         return wrapper
