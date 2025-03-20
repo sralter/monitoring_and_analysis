@@ -193,8 +193,8 @@ class ErrorCatcher:
         self.backup_count = backup_count
         self.sanitize_func = sanitize_func
         self.max_arg_length = max_arg_length
-
         self.results_format = results_format.lower()
+
         if self.results_format == "csv":
             self.RESULTS_FILE = os.path.join("logs", "error_results.csv")
         elif self.results_format == "parquet":
@@ -269,8 +269,12 @@ class ErrorCatcher:
                 df_combined = pd.DataFrame([row])
             df_combined.to_parquet(self.RESULTS_FILE, index=False)
     
-    def __call__(self, func):
+    def __call__(self, func=None):
         """Wrap the function call to catch exceptions, log them, and save error details."""
+        if func is None: # when no function argument is given
+            # Returning a wrapper function so that @ErrorCatcher() works
+            return lambda f: self.__call__(f)
+        
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             call_uuid = str(uuid.uuid4())
@@ -292,3 +296,4 @@ class ErrorCatcher:
                 self._save_error(timestamp, call_uuid, func.__name__, error_msg, args_repr)
                 raise
         return wrapper
+    
