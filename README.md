@@ -15,12 +15,14 @@ A Python module for robust execution monitoring and error logging. This module p
 3. [Features](#features)
 4. [Installation](#install)
 5. [Configuration Options](#config)
-6. [Usage](#usage)
+   * [Timer Parameters)(#tp)
+   * [ErrorCatcher Parameters)(#ep)
+7. [Usage](#usage)
    * [Timer Example Usage](#timer_example)
    * [Error Example Usage](#error_example)
    * [Combined Example Usage](#combined)
-7. [Customization](#custom)
-8. [Contributing](#contribute)
+8. [Customization](#custom)
+9. [Contributing](#contribute)
    
 
 ## 3. Features <a name='features'></a>
@@ -33,9 +35,12 @@ A Python module for robust execution monitoring and error logging. This module p
   * Saves log files in the working directory with the following structure:
   ```plaintext
   logs/
-  ├── timing.log            # JSON-formatted performance logs (rotates at 10 MB, up to 5 backups)
-  ├── timing_results.csv    # CSV file containing timing, CPU, and memory metrics for each function call
-  └── error.log             # JSON-formatted error log capturing exceptions (rotates at 10 MB, up to 5 backups)
+  ├── timing.log
+  |    # JSON-formatted performance logs (rotates at 10 MB, up to 5 backups)
+  ├── timing_results.csv
+  |    # CSV file containing timing, CPU, and memory metrics for each function call
+  └── error.log
+  |    # JSON-formatted error log capturing exceptions (rotates at 10 MB, up to 5 backups)
   ```
 * **Error Logging**: Separates error logging from performance logs for clarity and monitoring.
 * **Customizable Sanitation**: Optionally sanitize logged arguments or error messages to mask sensitive data.
@@ -62,21 +67,21 @@ pip install psutil
 
 Both decorators accept several optional arguments to customize their behavior.
 
-### Timer Decorator Parameters
+### Timer Decorator Parameters <a name='tp'></a>
 
-* **`log_to_console (bool, default=True)`:**  
+* **`log_to_console (bool, default=True)`**:  
   Print log messages to the console.
 
-* **`log_to_file (bool, default=True)`:**  
+* **`log_to_file (bool, default=True)`**:  
   Save log messages to a file (`timing.log` for performance logs).
 
-* **`track_resources (bool, default=True)`:**  
+* **`track_resources (bool, default=True)`**:  
   Track CPU and memory usage during function execution.
 
-* **`max_arg_length (int or None, default=None)`:**  
+* **`max_arg_length (int or None, default=None)`**:  
   If set, function arguments are truncated to the specified maximum length when logged.
 
-* **`sanitize_func (callable or None, default=None)`:**  
+* **`sanitize_func (callable or None, default=None)`**:  
   A function to sanitize logged strings (e.g., masking sensitive data).  
   _Example:_  
   ```python
@@ -84,10 +89,10 @@ Both decorators accept several optional arguments to customize their behavior.
       return ''.join('*' if c.isdigit() else c for c in arg_str)
   ```
 
-* **`results_format (str, default='csv')`**
+* **`results_format (str, default='csv')`**:
   Specify the format for saving timing results. Use `'csv'` (default) to save to a CSV file or `'parquet'` to save to a Parquet file.
 
-### ErrorCatcher Decorator Parameters
+### ErrorCatcher Decorator Parameters <a name='ep'></a>
 
 * **`log_to_console (bool, default=True)`**:
   Print error logs to the console.
@@ -98,7 +103,7 @@ Both decorators accept several optional arguments to customize their behavior.
 * **`error_log_file (str or None, default=None)`**:
   Custom path for the error log file. If None, defaults to `logs/error.log`.
 
-* **`max_bytes (int, default=1010241024)`**:
+* **`max_bytes (int, default=10*1024*1024)`**:
   Maximum size in bytes for the error log file before rotation (default is 10 MB).
 
 * **`backup_count (int, default=5)`**:
@@ -106,6 +111,9 @@ Both decorators accept several optional arguments to customize their behavior.
 
 * **`sanitize_func (callable or None, default=None)`**:
   A function to sanitize error messages before logging (useful for masking sensitive data).
+
+* **`max_arg_length (int or None, default=None)`**:  
+  If set, function arguments are truncated to the specified maximum length when logged in the error results.
 
 ## 6. Usage <a name='usage'></a>
 
