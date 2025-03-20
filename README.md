@@ -36,11 +36,14 @@ A Python module for robust execution monitoring and error logging. This module p
   ```plaintext
   logs/
   ├── timing.log
-  |    # JSON-formatted performance logs (rotates at 10 MB, up to 5 backups)
+  │   JSON-formatted performance logs
+  │   (rotates at 10 MB, up to 5 backups)
   ├── timing_results.csv
-  |    # CSV file containing timing, CPU, and memory metrics for each function call
+  │   CSV file containing timing, CPU, and memory metrics
+  │   for each function call
   └── error.log
-  |    # JSON-formatted error log capturing exceptions (rotates at 10 MB, up to 5 backups)
+      JSON-formatted error log capturing exceptions
+      (rotates at 10 MB, up to 5 backups)
   ```
 * **Error Logging**: Separates error logging from performance logs for clarity and monitoring.
 * **Customizable Sanitation**: Optionally sanitize logged arguments or error messages to mask sensitive data.
@@ -212,11 +215,10 @@ except Exception as e:
 
 [Back to TOC](#toc)
 
-**Sanitization**:
-
+**Sanitization**:  
 Provide your own sanitizer function to remove or mask sensitive data from logged messages.
 
-**Log Rotation Parameters**:
+**Log Rotation Parameters**:  
 Both Timer and ErrorCatcher use rotating file handlers. You can adjust the max file size and backup count by passing parameters to the decorators if needed.
 
 ## Contributing <a name='contribute'></a>
