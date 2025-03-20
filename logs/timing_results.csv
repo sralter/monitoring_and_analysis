@@ -1,0 +1,4 @@
+Timestamp,UUID,Function Name,Execution Time (s),CPU Time (sec),Memory Change (MB),Final Memory Usage (MB),Arguments,Log Message
+2025-03-20 08:06:57,f19d72a2-f006-4634-9669-5f26194f1ea3,test_function,2.008736082992982,0.004713631999999857,0.0,142.265625,"{""args"": [], ""kwargs"": {}}","Function `test_function` executed in 2.0087 sec, CPU Time: 0.0047 sec, Memory Change: 0.0000 MB, Final Memory: 142.2656 MB"
+2025-03-20 08:08:08,de2345dd-8544-469c-ab3f-0e7481bf382e,test_function,2.0081183339934796,0.0031535680000001065,0.0,129.8125,"{""args"": [], ""kwargs"": {}}","Function `test_function` executed in 2.0081 sec, CPU Time: 0.0032 sec, Memory Change: 0.0000 MB, Final Memory: 129.8125 MB"
+2025-03-20 08:08:14,d223eceb-438d-442b-82a4-93d53933089b,test_function,2.00841287500225,0.003842912000000087,0.0,131.15625,"{""args"": [], ""kwargs"": {}}","Function `test_function` executed in 2.0084 sec, CPU Time: 0.0038 sec, Memory Change: 0.0000 MB, Final Memory: 131.1562 MB"

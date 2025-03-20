@@ -35,7 +35,7 @@ class Timer:
     """A decorator for timing and profiling function execution.
     
     By default, results are saved as a CSV file. With results_format="parquet",
-    results are stored in a Parquet file instead.
+    results are stored in a Parquet file, appending a new row for each call.
     """
     
     def __init__(self, log_to_console=True, log_to_file=True, track_resources=True, 
@@ -53,7 +53,6 @@ class Timer:
             self.RESULTS_FILE = os.path.join(self.log_dir, "timing_results.csv")
         elif self.results_format == "parquet":
             self.RESULTS_FILE = os.path.join(self.log_dir, "timing_results.parquet")
-            self._results_buffer = []  # internal buffer for parquet results
         else:
             raise ValueError("results_format must be either 'csv' or 'parquet'")
         self.LOG_FILE = os.path.join(self.log_dir, "timing.log")
@@ -62,7 +61,7 @@ class Timer:
         self._setup_logging()
 
     def _ensure_files_exist(self):
-        """Ensure necessary files exist with proper headers."""
+        """Ensure necessary files exist with proper headers (for CSV mode)."""
         if self.results_format == "csv":
             if not os.path.exists(self.RESULTS_FILE):
                 with open(self.RESULTS_FILE, mode="w", newline="") as file:
@@ -70,7 +69,6 @@ class Timer:
                     writer.writerow(["Timestamp", "UUID", "Function Name", "Execution Time (s)", 
                                      "CPU Time (sec)", "Memory Change (MB)", "Final Memory Usage (MB)", "Arguments", "Log Message"])
                 print(f"Created fresh {self.RESULTS_FILE}")
-        # For Parquet, we use the internal buffer—no file is created initially.
         if not os.path.exists(self.LOG_FILE):
             open(self.LOG_FILE, "w").close()
             print(f"Created fresh {self.LOG_FILE}")
@@ -82,10 +80,8 @@ class Timer:
             logging.root.removeHandler(handler)
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
-        # Rotating handler for timing.log (10 MB max, 5 backups)
         rotating_handler = RotatingFileHandler(self.LOG_FILE, maxBytes=10*1024*1024, backupCount=5)
         rotating_handler.setFormatter(JSONFormatter())
-        # Console handler (plain text)
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
         logger.addHandler(rotating_handler)
@@ -109,9 +105,15 @@ class Timer:
                 "Arguments": args_repr,
                 "Log Message": log_message
             }
-            self._results_buffer.append(row)
-            df = pd.DataFrame(self._results_buffer)
-            df.to_parquet(self.RESULTS_FILE, index=False)
+            # Read existing parquet file if it exists
+            try:
+                df_existing = pd.read_parquet(self.RESULTS_FILE)
+                df_new = pd.DataFrame([row])
+                df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+            except (FileNotFoundError, ValueError):
+                # File does not exist or is empty, so just create a new DataFrame.
+                df_combined = pd.DataFrame([row])
+            df_combined.to_parquet(self.RESULTS_FILE, index=False)
 
     def __call__(self, func):
         """Wrap the function call with timing and logging."""
@@ -197,7 +199,6 @@ class ErrorCatcher:
             self.RESULTS_FILE = os.path.join("logs", "error_results.csv")
         elif self.results_format == "parquet":
             self.RESULTS_FILE = os.path.join("logs", "error_results.parquet")
-            self._results_buffer = []
         else:
             raise ValueError("results_format must be either 'csv' or 'parquet'")
             
@@ -259,9 +260,14 @@ class ErrorCatcher:
                 "Error Message": error_msg,
                 "Arguments": args_repr
             }
-            self._results_buffer.append(row)
-            df = pd.DataFrame(self._results_buffer)
-            df.to_parquet(self.RESULTS_FILE, index=False)
+            # Append the new row to existing data (if any)
+            try:
+                df_existing = pd.read_parquet(self.RESULTS_FILE)
+                df_new = pd.DataFrame([row])
+                df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+            except (FileNotFoundError, ValueError):
+                df_combined = pd.DataFrame([row])
+            df_combined.to_parquet(self.RESULTS_FILE, index=False)
     
     def __call__(self, func):
         """Wrap the function call to catch exceptions, log them, and save error details."""

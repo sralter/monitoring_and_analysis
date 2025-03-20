@@ -1,0 +1,4 @@
+Timestamp,UUID,Function Name,Error Message,Arguments
+2025-03-20 08:06:57,ef52457e-7d40-4630-afbf-62b075538f74,test_exception,This is a test error!,"{""args"": [], ""kwargs"": {}}"
+2025-03-20 08:08:08,03bb16c0-87ac-4d76-af54-45597b79bc0c,test_exception,This is a test error!,"{""args"": [], ""kwargs"": {}}"
+2025-03-20 08:08:14,34e11e3a-07d7-401e-9cb3-5fa4eca90b05,test_exception,This is a test error!,"{""args"": [], ""kwargs"": {}}"
