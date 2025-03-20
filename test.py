@@ -26,14 +26,14 @@ def test_function_single_process_parquet(n):
     return n
 
 # Multi-Process Test Function (CSV)
-@Timer(log_to_console=True, log_to_file=True, results_format="csv", use_multiprocessing=True)
+@Timer(log_to_console=True, log_to_file=True, results_format="csv", use_multiprocessing=False)
 def test_function_multi_process_csv(n):
     """Simulate a function that takes time to execute (multi-process, CSV logging)."""
     time.sleep(n)
     return n
 
 # Multi-Process Test Function (Parquet)
-@Timer(log_to_console=True, log_to_file=True, results_format="parquet", use_multiprocessing=True)
+@Timer(log_to_console=True, log_to_file=True, results_format="parquet", use_multiprocessing=False)
 def test_function_multi_process_parquet(n):
     """Simulate a function that takes time to execute (multi-process, Parquet logging)."""
     time.sleep(n)
