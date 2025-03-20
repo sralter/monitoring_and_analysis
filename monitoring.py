@@ -6,10 +6,11 @@ import functools
 import time
 import psutil
 import uuid
+import multiprocessing
 from datetime import datetime
 import pandas as pd
 import geopandas as gpd
-from logging.handlers import RotatingFileHandler
+from logging.handlers import RotatingFileHandler, QueueHandler, QueueListener
 
 def sanitizer(arg_str):
     """
@@ -32,93 +33,308 @@ class JSONFormatter(logging.Formatter):
         return json.dumps(log_record)
 
 class Timer:
-    """A decorator for timing and profiling function execution.
+    """
+    A decorator for timing and profiling function execution.
     
     By default, results are saved as a CSV file. With results_format="parquet",
     results are stored in a Parquet file, appending a new row for each call.
     """
-    
     def __init__(self, log_to_console=True, log_to_file=True, track_resources=True, 
-                 max_arg_length=None, sanitize_func=None, results_format="csv"):
+                 max_arg_length=None, sanitize_func=None, results_format="csv",
+                 use_multiprocessing=False):
         self.log_to_console = log_to_console
         self.log_to_file = log_to_file
         self.track_resources = track_resources
         self.max_arg_length = max_arg_length
         self.sanitize_func = sanitize_func
-        self.results_format = results_format.lower()  # "csv" or "parquet"
+        self.results_format = results_format.lower()
+        self.use_multiprocessing = use_multiprocessing  # flag for multiprocessing
 
         self.log_dir = "logs"
         os.makedirs(self.log_dir, exist_ok=True)
+        
         if self.results_format == "csv":
             self.RESULTS_FILE = os.path.join(self.log_dir, "timing_results.csv")
         elif self.results_format == "parquet":
             self.RESULTS_FILE = os.path.join(self.log_dir, "timing_results.parquet")
         else:
             raise ValueError("results_format must be either 'csv' or 'parquet'")
+
         self.LOG_FILE = os.path.join(self.log_dir, "timing.log")
+
+        # Only use multiprocessing Lock if multiprocessing is enabled
+        self.file_lock = multiprocessing.Lock() if self.use_multiprocessing else None
 
         self._ensure_files_exist()
         self._setup_logging()
 
     def _ensure_files_exist(self):
         """Ensure necessary files exist with proper headers (for CSV mode)."""
+        if self.use_multiprocessing and self.file_lock:
+            with self.file_lock:
+                self._create_files_if_needed()
+        else:
+            self._create_files_if_needed()
+
+    def _create_files_if_needed(self):
+        """Create necessary files safely, avoiding race conditions."""
+        
+        # Ensure CSV file exists and has headers
         if self.results_format == "csv":
-            if not os.path.exists(self.RESULTS_FILE):
-                with open(self.RESULTS_FILE, mode="w", newline="") as file:
+            try:
+                with open(self.RESULTS_FILE, mode="x", newline="") as file:  # 'x' mode prevents overwriting
                     writer = csv.writer(file)
                     writer.writerow(["Timestamp", "UUID", "Function Name", "Execution Time (s)", 
-                                     "CPU Time (sec)", "Memory Change (MB)", "Final Memory Usage (MB)", "Arguments", "Log Message"])
-                print(f"Created fresh {self.RESULTS_FILE}")
-        if not os.path.exists(self.LOG_FILE):
-            open(self.LOG_FILE, "w").close()
-            print(f"Created fresh {self.LOG_FILE}")
+                                    "CPU Time (sec)", "Memory Change (MB)", "Final Memory Usage (MB)", "Arguments", "Log Message"])
+                    print(f"Created fresh {self.RESULTS_FILE}")
+            except FileExistsError:
+                pass  # Another process has already created the file
 
+        # Ensure Parquet file exists
+        elif self.results_format == "parquet":
+            if not os.path.exists(self.RESULTS_FILE):  # Avoid unnecessary reads
+                try:
+                    df_empty = pd.DataFrame(columns=["Timestamp", "UUID", "Function Name", "Execution Time (s)", 
+                                                    "CPU Time (sec)", "Memory Change (MB)", "Final Memory Usage (MB)", "Arguments", "Log Message"])
+                    df_empty.to_parquet(self.RESULTS_FILE, index=False)
+                    print(f"Created fresh {self.RESULTS_FILE}")
+                except FileExistsError:
+                    pass  # Another process has already created the file
+
+        # Ensure log file exists
+        try:
+            with open(self.LOG_FILE, mode="x") as file:
+                print(f"Created fresh {self.LOG_FILE}")
+        except FileExistsError:
+            pass  # Another process has already created the file
+        
+    # def _create_files_if_needed(self):
+    #     """Create necessary files safely, avoiding race conditions."""
+    #     # Ensure CSV file exists and has headers
+    #     if self.results_format == "csv":
+    #         try:
+    #             with open(self.RESULTS_FILE, mode="x", newline="") as file:  # 'x' mode prevents overwriting
+    #                 writer = csv.writer(file)
+    #                 writer.writerow(["Timestamp", "UUID", "Function Name", "Execution Time (s)", 
+    #                                 "CPU Time (sec)", "Memory Change (MB)", "Final Memory Usage (MB)", "Arguments", "Log Message"])
+    #                 print(f"Created fresh {self.RESULTS_FILE}")
+    #         except FileExistsError:
+    #             pass  # Another process has already created the file
+
+    #     # Ensure log file exists
+    #     try:
+    #         with open(self.LOG_FILE, mode="x") as file:
+    #             print(f"Created fresh {self.LOG_FILE}")
+    #     except FileExistsError:
+    #         pass  # Another process has already created the file
+
+    # def _ensure_files_exist(self):
+    #     """Ensure necessary files exist with proper headers (for CSV mode)."""
+    #     if self.results_format == "csv":
+    #         if not os.path.exists(self.RESULTS_FILE):
+    #             with open(self.RESULTS_FILE, mode="w", newline="") as file:
+    #                 writer = csv.writer(file)
+    #                 writer.writerow(["Timestamp", "UUID", "Function Name", "Execution Time (s)", 
+    #                                  "CPU Time (sec)", "Memory Change (MB)", "Final Memory Usage (MB)", "Arguments", "Log Message"])
+    #             print(f"Created fresh {self.RESULTS_FILE}")
+    #     if not os.path.exists(self.LOG_FILE):
+    #         open(self.LOG_FILE, "w").close()
+    #         print(f"Created fresh {self.LOG_FILE}")
+
+    # def _setup_logging(self):
+    #     """Configure logging with JSON formatting and log rotation."""
+    #     logging.shutdown()
+    #     for handler in logging.root.handlers[:]:
+    #         logging.root.removeHandler(handler)
+    #     logger = logging.getLogger()
+    #     logger.setLevel(logging.INFO)
+    #     rotating_handler = RotatingFileHandler(self.LOG_FILE, maxBytes=10*1024*1024, backupCount=5)
+    #     rotating_handler.setFormatter(JSONFormatter())
+    #     console_handler = logging.StreamHandler()
+    #     console_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    #     logger.addHandler(rotating_handler)
+    #     logger.addHandler(console_handler)
     def _setup_logging(self):
-        """Configure logging with JSON formatting and log rotation."""
-        logging.shutdown()
-        for handler in logging.root.handlers[:]:
-            logging.root.removeHandler(handler)
+        """Configure logging with JSON formatting and log rotation, ensuring multiprocessing safety."""
+    
+        # Ensure each process configures its own logging independently
         logger = logging.getLogger()
+        if logger.hasHandlers():  # Prevent duplicate handlers
+            return  
+    
         logger.setLevel(logging.INFO)
+    
+        # Create a log queue for multiprocessing safety
+        log_queue = multiprocessing.Queue() if self.use_multiprocessing else None
+    
+        # Set up file logging with rotation
         rotating_handler = RotatingFileHandler(self.LOG_FILE, maxBytes=10*1024*1024, backupCount=5)
         rotating_handler.setFormatter(JSONFormatter())
+    
+        # Set up console logging
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-        logger.addHandler(rotating_handler)
-        logger.addHandler(console_handler)
+    
+        if self.use_multiprocessing and log_queue:
+            # Use a queue-based logging handler for multiprocessing safety
+            queue_handler = QueueHandler(log_queue)
+            logger.addHandler(queue_handler)
+    
+            # Set up a listener in the parent process to write logs safely
+            listener = QueueListener(log_queue, rotating_handler, console_handler, respect_handler_level=True)
+            listener.start()
+        else:
+            # Standard single-process logging
+            logger.addHandler(rotating_handler)
+            logger.addHandler(console_handler)
 
+    # def _save_results(self, timestamp, call_uuid, function_name, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message):
+    #     """Save timing and resource results to the chosen file format."""
+    #     if self.results_format == "csv":
+    #         with open(self.RESULTS_FILE, mode="a", newline="") as file:
+    #             writer = csv.writer(file)
+    #             writer.writerow([timestamp, call_uuid, function_name, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message])
+    #     elif self.results_format == "parquet":
+    #         row = {
+    #             "Timestamp": timestamp,
+    #             "UUID": call_uuid,
+    #             "Function Name": function_name,
+    #             "Execution Time (s)": elapsed_time,
+    #             "CPU Time (sec)": cpu_time,
+    #             "Memory Change (MB)": mem_change,
+    #             "Final Memory Usage (MB)": final_mem,
+    #             "Arguments": args_repr,
+    #             "Log Message": log_message
+    #         }
+    #         # Read existing parquet file if it exists
+    #         try:
+    #             df_existing = pd.read_parquet(self.RESULTS_FILE)
+    #             df_new = pd.DataFrame([row])
+    #             df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+    #         except (FileNotFoundError, ValueError):
+    #             # File does not exist or is empty, so just create a new DataFrame.
+    #             df_combined = pd.DataFrame([row])
+    #         df_combined.to_parquet(self.RESULTS_FILE, index=False)
     def _save_results(self, timestamp, call_uuid, function_name, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message):
-        """Save timing and resource results to the chosen file format."""
-        if self.results_format == "csv":
-            with open(self.RESULTS_FILE, mode="a", newline="") as file:
-                writer = csv.writer(file)
-                writer.writerow([timestamp, call_uuid, function_name, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message])
-        elif self.results_format == "parquet":
-            row = {
-                "Timestamp": timestamp,
-                "UUID": call_uuid,
-                "Function Name": function_name,
-                "Execution Time (s)": elapsed_time,
-                "CPU Time (sec)": cpu_time,
-                "Memory Change (MB)": mem_change,
-                "Final Memory Usage (MB)": final_mem,
-                "Arguments": args_repr,
-                "Log Message": log_message
-            }
-            # Read existing parquet file if it exists
-            try:
-                df_existing = pd.read_parquet(self.RESULTS_FILE)
-                df_new = pd.DataFrame([row])
-                df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-            except (FileNotFoundError, ValueError):
-                # File does not exist or is empty, so just create a new DataFrame.
-                df_combined = pd.DataFrame([row])
-            df_combined.to_parquet(self.RESULTS_FILE, index=False)
+        """Save timing and resource results to the chosen file format in a multiprocessing-safe manner."""
+        
+        row = [
+            timestamp, call_uuid, function_name, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message
+        ]
 
+        if self.results_format == "csv":
+            # Ensure only one process writes at a time if multiprocessing is enabled
+            if self.use_multiprocessing and self.file_lock:
+                with self.file_lock:
+                    self._write_csv(row)
+            else:
+                self._write_csv(row)
+
+        elif self.results_format == "parquet":
+            # Parquet writes are atomic, but we'll still use the lock to prevent race conditions
+            if self.use_multiprocessing and self.file_lock:
+                with self.file_lock:
+                    self._write_parquet(row)
+            else:
+                self._write_parquet(row)
+
+    def _write_csv(self, row):
+        """Write a row to the CSV file safely."""
+        with open(self.RESULTS_FILE, mode="a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(row)
+
+    def _write_parquet(self, row):
+        """Write a row to the Parquet file safely."""
+        row_dict = {
+            "Timestamp": row[0],
+            "UUID": row[1],
+            "Function Name": row[2],
+            "Execution Time (s)": row[3],
+            "CPU Time (sec)": row[4],
+            "Memory Change (MB)": row[5],
+            "Final Memory Usage (MB)": row[6],
+            "Arguments": row[7],
+            "Log Message": row[8]
+        }
+
+        # Read existing parquet file if it exists and append new data
+        try:
+            df_existing = pd.read_parquet(self.RESULTS_FILE)
+            df_new = pd.DataFrame([row_dict])
+            df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+        except (FileNotFoundError, ValueError):
+            # File does not exist or is empty, so create a new DataFrame
+            df_combined = pd.DataFrame([row_dict])
+
+        df_combined.to_parquet(self.RESULTS_FILE, index=False)
+
+    # def __call__(self, func):
+    #     """Wrap the function call with timing and logging."""
+    #     if func is None: # for when no func is given
+    #         return lambda f: self.__call__(f)  # Return a decorator function
+    #     @functools.wraps(func)
+    #     def wrapper(*args, **kwargs):
+    #         call_uuid = str(uuid.uuid4())
+    #         start_time = time.perf_counter()
+    #         process = psutil.Process(os.getpid())
+    #         cpu_start = (process.cpu_times().user + process.cpu_times().system) if self.track_resources else None
+    #         mem_start = (process.memory_info().rss / (1024 ** 2)) if self.track_resources else None
+
+    #         try:
+    #             result = func(*args, **kwargs)
+    #         except Exception as e:
+    #             logging.exception("Function `%s` raised an exception", func.__name__,
+    #                               extra={"function_name": func.__name__, "uuid": call_uuid})
+    #             raise
+
+    #         elapsed_time = time.perf_counter() - start_time
+    #         cpu_end = (process.cpu_times().user + process.cpu_times().system) if self.track_resources else None
+    #         mem_end = (process.memory_info().rss / (1024 ** 2)) if self.track_resources else None
+
+    #         cpu_time = cpu_end - cpu_start if cpu_start is not None else None
+    #         mem_change = mem_end - mem_start if mem_start is not None else None
+    #         final_mem = mem_end if mem_end is not None else None
+
+    #         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    #         def safe_serialize(obj):
+    #             """Convert args/kwargs to string with optional sanitization and truncation."""
+    #             if isinstance(obj, (pd.DataFrame, gpd.GeoDataFrame)):
+    #                 return f"<DataFrame with {len(obj)} rows>"
+    #             try:
+    #                 s = str(obj)
+    #             except Exception:
+    #                 s = "<unserializable>"
+    #             if self.sanitize_func:
+    #                 s = self.sanitize_func(s)
+    #             if self.max_arg_length is not None and len(s) > self.max_arg_length:
+    #                 s = s[:self.max_arg_length] + "..."
+    #             return s
+
+    #         args_repr = json.dumps({
+    #             "args": [safe_serialize(arg) for arg in args],
+    #             "kwargs": {k: safe_serialize(v) for k, v in kwargs.items()}
+    #         })
+
+    #         log_message = f"Function `{func.__name__}` executed in {elapsed_time:.4f} sec"
+    #         if self.track_resources:
+    #             log_message += f", CPU Time: {cpu_time:.4f} sec, Memory Change: {mem_change:.4f} MB, Final Memory: {final_mem:.4f} MB"
+    #         if self.log_to_console:
+    #             print(log_message)
+    #         logging.info(log_message, extra={"function_name": func.__name__, "uuid": call_uuid})
+
+    #         if self.log_to_file:
+    #             self._save_results(timestamp, call_uuid, func.__name__, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message)
+
+    #         return result
+
+    #     return wrapper
     def __call__(self, func):
         """Wrap the function call with timing and logging."""
-            if func is None: # for when no func is given
-                return lambda f: self.__call__(f)  # Return a decorator function
+        if func is None:  # For when no function is given
+            return lambda f: self.__call__(f)  # Return a decorator function
+        
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             call_uuid = str(uuid.uuid4())
@@ -126,24 +342,24 @@ class Timer:
             process = psutil.Process(os.getpid())
             cpu_start = (process.cpu_times().user + process.cpu_times().system) if self.track_resources else None
             mem_start = (process.memory_info().rss / (1024 ** 2)) if self.track_resources else None
-
+    
             try:
                 result = func(*args, **kwargs)
             except Exception as e:
                 logging.exception("Function `%s` raised an exception", func.__name__,
                                   extra={"function_name": func.__name__, "uuid": call_uuid})
                 raise
-
+    
             elapsed_time = time.perf_counter() - start_time
             cpu_end = (process.cpu_times().user + process.cpu_times().system) if self.track_resources else None
             mem_end = (process.memory_info().rss / (1024 ** 2)) if self.track_resources else None
-
+    
             cpu_time = cpu_end - cpu_start if cpu_start is not None else None
             mem_change = mem_end - mem_start if mem_start is not None else None
             final_mem = mem_end if mem_end is not None else None
-
+    
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+    
             def safe_serialize(obj):
                 """Convert args/kwargs to string with optional sanitization and truncation."""
                 if isinstance(obj, (pd.DataFrame, gpd.GeoDataFrame)):
@@ -157,24 +373,29 @@ class Timer:
                 if self.max_arg_length is not None and len(s) > self.max_arg_length:
                     s = s[:self.max_arg_length] + "..."
                 return s
-
+    
             args_repr = json.dumps({
                 "args": [safe_serialize(arg) for arg in args],
                 "kwargs": {k: safe_serialize(v) for k, v in kwargs.items()}
             })
-
+    
             log_message = f"Function `{func.__name__}` executed in {elapsed_time:.4f} sec"
             if self.track_resources:
                 log_message += f", CPU Time: {cpu_time:.4f} sec, Memory Change: {mem_change:.4f} MB, Final Memory: {final_mem:.4f} MB"
             if self.log_to_console:
                 print(log_message)
             logging.info(log_message, extra={"function_name": func.__name__, "uuid": call_uuid})
-
+    
+            # Ensure only one process writes to the file at a time
             if self.log_to_file:
-                self._save_results(timestamp, call_uuid, func.__name__, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message)
-
+                if self.use_multiprocessing and self.file_lock:
+                    with self.file_lock:
+                        self._save_results(timestamp, call_uuid, func.__name__, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message)
+                else:
+                    self._save_results(timestamp, call_uuid, func.__name__, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message)
+    
             return result
-
+    
         return wrapper
 
 class ErrorCatcher:
