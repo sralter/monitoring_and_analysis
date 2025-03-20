@@ -117,6 +117,8 @@ class Timer:
 
     def __call__(self, func):
         """Wrap the function call with timing and logging."""
+            if func is None: # for when no func is given
+                return lambda f: self.__call__(f)  # Return a decorator function
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             call_uuid = str(uuid.uuid4())
