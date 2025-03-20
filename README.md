@@ -2,27 +2,28 @@
 
 By Samuel Alter
 
-## Overview <a name='overview'></a>
+## 1. Overview <a name='overview'></a>
 
 A Python module for robust execution monitoring and error logging. This module provides two decorators:
 * **Timer**: Logs function execution time, CPU usage, memory usage, and captures function arguments. Performance data is saved to a CSV file and logged in JSON format.
 * **ErrorCatcher**: Catches and logs exceptions with a full traceback to a dedicated error log file using log rotation. Both decorators generate a unique UUID per function call for tracking.
 
-## Table of Contents <a name='toc'></a>
+## 2. Table of Contents <a name='toc'></a>
 
-1. [Overview ](#overview)
+1. [Overview](#overview)
 2. [Table of Contents](#toc)
 3. [Features](#features)
 4. [Installation](#install)
-5. [Usage](#usage)
+5. [Configuration Options](#config)
+6. [Usage](#usage)
    * [Timer Example Usage](#timer_example)
    * [Error Example Usage](#error_example)
    * [Combined Example Usage](#combined)
-6. [Customization](#custom)
-7. [Contributing](#contribute)
+7. [Customization](#custom)
+8. [Contributing](#contribute)
    
 
-## Features <a name='features'></a>
+## 3. Features <a name='features'></a>
 
 [Back to TOC](#toc)
 
@@ -40,7 +41,7 @@ A Python module for robust execution monitoring and error logging. This module p
 * **Customizable Sanitation**: Optionally sanitize logged arguments or error messages to mask sensitive data.
 * **Log Rotation**: Automatically rotates log files (default: 10 MB max size, 5 backups).
 
-## Installation <a name='install'></a>
+## 4. Installation <a name='install'></a>
 
 [Back to TOC](#toc)
 
@@ -55,7 +56,58 @@ You can install `psutil` using `pip`:
 pip install psutil
 ```
 
-## Usage <a name='usage'></a>
+## 5. Configuration Options <a name='config'></a>
+
+[Back to TOC](#toc)
+
+Both decorators accept several optional arguments to customize their behavior.
+
+### Timer Decorator Parameters
+
+* **`log_to_console (bool, default=True)`:**  
+  Print log messages to the console.
+
+* **`log_to_file (bool, default=True)`:**  
+  Save log messages to a file (`timing.log` for performance logs).
+
+* **`track_resources (bool, default=True)`:**  
+  Track CPU and memory usage during function execution.
+
+* **`max_arg_length (int or None, default=None)`:**  
+  If set, function arguments are truncated to the specified maximum length when logged.
+
+* **`sanitize_func (callable or None, default=None)`:**  
+  A function to sanitize logged strings (e.g., masking sensitive data).  
+  _Example:_  
+  ```python
+  def sanitizer(arg_str):
+      return ''.join('*' if c.isdigit() else c for c in arg_str)
+  ```
+
+* **`results_format (str, default='csv')`**
+  Specify the format for saving timing results. Use `'csv'` (default) to save to a CSV file or `'parquet'` to save to a Parquet file.
+
+### ErrorCatcher Decorator Parameters
+
+* **`log_to_console (bool, default=True)`**:
+  Print error logs to the console.
+
+* **`log_to_file (bool, default=True)`**:
+  Save error logs to a dedicated error log file (`error.log`).
+
+* **`error_log_file (str or None, default=None)`**:
+  Custom path for the error log file. If None, defaults to `logs/error.log`.
+
+* **`max_bytes (int, default=1010241024)`**:
+  Maximum size in bytes for the error log file before rotation (default is 10 MB).
+
+* **`backup_count (int, default=5)`**:
+  Number of backup files to keep during log rotation.
+
+* **`sanitize_func (callable or None, default=None)`**:
+  A function to sanitize error messages before logging (useful for masking sensitive data).
+
+## 6. Usage <a name='usage'></a>
 
 [Back to TOC](#toc)
 
