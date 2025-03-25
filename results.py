@@ -43,7 +43,7 @@ def parse_log_file(log_file, start_time=None, end_time=None):
         lines = [line for line in lines if in_window(line)]
 
     pattern = re.compile(
-        r"(?P<func>\w+): (?P<type>start|end): wall=(?P<wall>[\d.]+) perf=(?P<perf>[\d.]+) id=(?P<id>[\w-]+)"
+        r"(?P<func>[^\s:]+): (?P<type>start|end): wall=(?P<wall>[\d.]+) perf=(?P<perf>[\d.]+) id=(?P<id>[\w-]+)"
         r"(?: duration=(?P<duration>[\d.]+)sec)? cpu=(?P<cpu>[\d.]+)% rss=(?P<rss>\d+) vms=(?P<vms>\d+) "
         r"mem%=(?P<mem>[\d.]+) threads=(?P<threads>\d+) fds=(?P<fds>\d+)"
     )
