@@ -11,6 +11,7 @@ from datetime import datetime
 import pandas as pd
 import geopandas as gpd
 from logging.handlers import RotatingFileHandler, QueueHandler, QueueListener
+import inspect
 
 def sanitizer(arg_str):
     """
@@ -387,3 +388,82 @@ class ErrorCatcher:
                 raise
         return wrapper
     
+process = psutil.Process()
+def get_caller_name():
+    frame = inspect.currentframe()
+    outer = inspect.getouterframes(frame)[2]  # skip self and calling helper
+    return outer.function
+
+def get_metrics_start(func_name: str = None):
+    if func_name is None:
+        func_name = get_caller_name()
+
+    call_id = str(uuid.uuid4())
+    wall_start = time.time()
+    perf_start = time.perf_counter()
+    cpu_percent = process.cpu_percent(interval=None)
+    mem_info = process.memory_info()
+    mem_percent = process.memory_percent()
+    cpu_times = process.cpu_times()
+    num_threads = process.num_threads()
+    num_fds = process.num_fds()
+
+    metrics = {
+        "func": func_name,
+        "id": call_id,
+        "wall_start": wall_start,
+        "perf_start": perf_start,
+        "cpu_start_percent": cpu_percent,
+        "rss_start": mem_info.rss,
+        "vms_start": mem_info.vms,
+        "mem_percent_start": mem_percent,
+        "cpu_times_start": cpu_times,
+        "num_threads_start": num_threads,
+        "num_fds_start": num_fds,
+    }
+
+    logging.info(
+        "%s: start: wall=%.4f perf=%.4f id=%s cpu=%.2f%% rss=%d vms=%d mem%%=%.2f threads=%d fds=%d",
+        func_name, wall_start, perf_start, call_id, cpu_percent,
+        mem_info.rss, mem_info.vms, mem_percent, num_threads, num_fds
+    )
+
+    return metrics
+
+def get_metrics_end(metrics_start: dict, func_name: str = None):
+    if func_name is None:
+        func_name = metrics_start["func"]
+
+    call_id = metrics_start["id"]
+    wall_end = time.time()
+    perf_end = time.perf_counter()
+    duration = perf_end - metrics_start["perf_start"]
+    cpu_percent = process.cpu_percent(interval=None)
+    mem_info = process.memory_info()
+    mem_percent = process.memory_percent()
+    cpu_times = process.cpu_times()
+    num_threads = process.num_threads()
+    num_fds = process.num_fds()
+
+    logging.info(
+        "%s: end: wall=%.4f perf=%.4f id=%s duration=%.4fsec cpu=%.2f%% rss=%d vms=%d mem%%=%.2f threads=%d fds=%d",
+        func_name, wall_end, perf_end, call_id, duration, cpu_percent,
+        mem_info.rss, mem_info.vms, mem_percent, num_threads, num_fds
+    )
+
+    metrics = {
+        "func": func_name,
+        "id": call_id,
+        "wall_end": wall_end,
+        "perf_end": perf_end,
+        "duration": duration,
+        "cpu_end_percent": cpu_percent,
+        "rss_end": mem_info.rss,
+        "vms_end": mem_info.vms,
+        "mem_percent_end": mem_percent,
+        "cpu_times_end": cpu_times,
+        "num_threads_end": num_threads,
+        "num_fds_end": num_fds,
+    }
+
+    return metrics
