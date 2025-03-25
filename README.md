@@ -8,21 +8,24 @@ A Python module for robust execution monitoring and error logging. This module p
 * **Timer**: Logs function execution time, CPU usage, memory usage, and captures function arguments. Performance data is saved to a CSV file and logged in JSON format.
 * **ErrorCatcher**: Catches and logs exceptions with a full traceback to a dedicated error log file using log rotation. Both decorators generate a unique UUID per function call for tracking.
 
+Note: this decorator is not working for functions using multiprocessing.
+
 ## 2. Table of Contents <a name='toc'></a>
 
-1. [Overview](#overview)
-2. [Table of Contents](#toc)
-3. [Features](#features)
-4. [Installation](#install)
-5. [Configuration Options](#config)
-   * [Timer Parameters](#tp)
-   * [ErrorCatcher Parameters](#ep)
-7. [Usage](#usage)
-   * [Timer Example Usage](#timer_example)
-   * [Error Example Usage](#error_example)
-   * [Combined Example Usage](#combined)
-8. [Customization](#custom)
-9. [Contributing](#contribute)
+- [monitoring](#monitoring)
+  - [1. Overview ](#1-overview-)
+  - [2. Table of Contents ](#2-table-of-contents-)
+  - [3. Features ](#3-features-)
+  - [4. Installation ](#4-installation-)
+  - [5. Configuration Options ](#5-configuration-options-)
+    - [Timer Decorator Parameters ](#timer-decorator-parameters-)
+    - [ErrorCatcher Decorator Parameters ](#errorcatcher-decorator-parameters-)
+  - [6. Usage ](#6-usage-)
+    - [Example with the Timer decorator ](#example-with-the-timer-decorator-)
+    - [Example with the ErrorCatcher decorator ](#example-with-the-errorcatcher-decorator-)
+    - [Example with both decorators combined ](#example-with-both-decorators-combined-)
+  - [Customization ](#customization-)
+  - [Contributing ](#contributing-)
    
 
 ## 3. Features <a name='features'></a>
