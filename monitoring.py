@@ -467,3 +467,14 @@ def get_metrics_end(metrics_start: dict, func_name: str = None):
     }
 
     return metrics
+
+# Usage:
+
+# ```python
+# def my_function():
+#     start_metrics = get_metrics_start("function_name_here")
+
+#     # function logic here...
+
+#     end_metrics = get_metrics_end("function_name_here", start_metrics)
+# ```
