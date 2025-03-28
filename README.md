@@ -4,28 +4,36 @@ By Samuel Alter
 
 ## 1. Overview <a name='overview'></a>
 
-A Python module for robust execution monitoring and error logging. This module provides two decorators:
-* **Timer**: Logs function execution time, CPU usage, memory usage, and captures function arguments. Performance data is saved to a CSV file and logged in JSON format.
-* **ErrorCatcher**: Catches and logs exceptions with a full traceback to a dedicated error log file using log rotation. Both decorators generate a unique UUID per function call for tracking.
+A Python module for robust execution monitoring, error logging, and analysis of the results. This module provides two decorators:
+* [**Timer**](#): Logs function execution time, CPU usage, memory usage, and captures function arguments. Performance data is saved to a CSV file and logged in JSON format.
+* [**ErrorCatcher**](#): Catches and logs exceptions with a full traceback to a dedicated error log file using log rotation. Both decorators generate a unique UUID per function call for tracking.
+Note: these decorators currently do not work for functions using multiprocessing.
 
-Note: this decorator is not working for functions using multiprocessing.
+This module also provides the following tool for implementing manual performance tracking and automated performance analysis. These tools are multiprocessing-safe.
+* [**`get_metrics_start()`**](#): Logs initial state and starts timer for execution time measurement.
+* [**`get_metrics_end()`**](#): Logs final state and calculates execution time since `get_metrics_start()` call.
+* [**results.py**](#): Automatically grabs the most-recent, dense cluster of timestamps (i.e., the most recent run of your code) from the `.log` file to aggregate and plot benchmarking data into the following figures:
+  * _Execution time per function_
+  * _Function call timeline_
+  * _Memory delta per function_
+  * _Top-10 functions by total time_
+  * _Histograms of execution time per function_
 
 ## 2. Table of Contents <a name='toc'></a>
 
-- [monitoring](#monitoring)
-  - [1. Overview ](#1-overview-)
-  - [2. Table of Contents ](#2-table-of-contents-)
-  - [3. Features ](#3-features-)
-  - [4. Installation ](#4-installation-)
-  - [5. Configuration Options ](#5-configuration-options-)
-    - [Timer Decorator Parameters ](#timer-decorator-parameters-)
-    - [ErrorCatcher Decorator Parameters ](#errorcatcher-decorator-parameters-)
-  - [6. Usage ](#6-usage-)
-    - [Example with the Timer decorator ](#example-with-the-timer-decorator-)
-    - [Example with the ErrorCatcher decorator ](#example-with-the-errorcatcher-decorator-)
-    - [Example with both decorators combined ](#example-with-both-decorators-combined-)
-  - [Customization ](#customization-)
-  - [Contributing ](#contributing-)
+[1. Overview ](#overview)  
+[2. Table of Contents ](#2-table-of-contents-)  
+[3. Features ](#3-features-)  
+[4. Installation ](#4-installation-)  
+[5. Configuration Options ](#5-configuration-options-)  
+    - [Timer Decorator Parameters ](#timer-decorator-parameters-)  
+    - [ErrorCatcher Decorator Parameters ](#errorcatcher-decorator-parameters-)  
+  - [6. Usage ](#6-usage-)  
+    - [Example with the Timer decorator ](#example-with-the-timer-decorator-)  
+    - [Example with the ErrorCatcher decorator ](#example-with-the-errorcatcher-decorator-)  
+    - [Example with both decorators combined ](#example-with-both-decorators-combined-)  
+  - [Customization ](#customization-)  
+  - [Contributing ](#contributing-)  
    
 
 ## 3. Features <a name='features'></a>
