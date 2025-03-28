@@ -4,20 +4,39 @@ By Samuel Alter
 
 ## 1. Overview <a name='overview'></a>
 
-A Python module for robust execution monitoring, error logging, and analysis of the results. This module provides two decorators:
-* [**Timer**](#): Logs function execution time, CPU usage, memory usage, and captures function arguments. Performance data is saved to a CSV file and logged in JSON format.
-* [**ErrorCatcher**](#): Catches and logs exceptions with a full traceback to a dedicated error log file using log rotation. Both decorators generate a unique UUID per function call for tracking.
-Note: these decorators currently do not work for functions using multiprocessing.
+A Python module for robust execution monitoring, error logging, and benchmarking analysis. This module provides two decorators:
+* [**Timer**](#tp):
+  * Logs function execution time, CPU usage, memory usage, and captures function arguments. Performance data is saved to a CSV file and logged in JSON format.
+* [**ErrorCatcher**](#ep):
+  * Catches and logs exceptions with a full traceback to a dedicated error log file using log rotation. Both decorators generate a unique UUID per function call for tracking.
+**Note: these decorators currently do not work for functions using multiprocessing.**
 
-This module also provides the following tool for implementing manual performance tracking and automated performance analysis. These tools are multiprocessing-safe.
-* [**`get_metrics_start()`**](#): Logs initial state and starts timer for execution time measurement.
-* [**`get_metrics_end()`**](#): Logs final state and calculates execution time since `get_metrics_start()` call.
-* [**results.py**](#): Automatically grabs the most-recent, dense cluster of timestamps (i.e., the most recent run of your code) from the `.log` file to aggregate and plot benchmarking data into the following figures:
-  * _Execution time per function_
-  * _Function call timeline_
-  * _Memory delta per function_
-  * _Top-10 functions by total time_
-  * _Histograms of execution time per function_
+This module also provides the following tools for implementing manual performance tracking and automated performance analysis. These tools are multiprocessing-safe.
+* [**`get_metrics_start()`**](#metrics_start):
+  * Logs initial state and starts timer for execution time measurement.
+* [**`get_metrics_end()`**](#metrics_end):
+  * Logs final state and calculates execution time since `get_metrics_start()` call.
+* [**results.py**](#results):
+  * Automatically grabs the most-recent, dense cluster of timestamps (i.e., the most recent run of your code) from the `.log` file to aggregate and plot benchmarking data into the following figures:
+    * _Execution time per function_
+    * _Function call timeline_
+    * _Memory delta per function_
+    * _Top-10 functions by total time_
+    * _Histograms of execution time per function_
+  * The script also creates three additional files:
+    * _results.csv_: The full results file from the most-recent run
+    * _filtered_log_lines.log_: The raw `.log` lines from the most-recent run
+    * _results_aggregate_: The aggregate results showing:
+
+| Column                      | Data Type | Description                                                     |
+| --------------------------- | --------- | --------------------------------------------------------------- |
+| **Function**                | String    | Function name                   |
+| **Perf Duration (s)_count** | Integer   | Number of samples recorded for performance duration (s)          |
+| **Perf Duration (s)_sum**   | Float     | Total sum of all performance durations (s)                      |
+| **Perf Duration (s)_mean**  | Float     | Average performance duration (s)                                |
+| **Perf Duration (s)_max**   | Float     | Maximum performance duration observed (s)                       |
+| **CPU Delta_mean**          | Float     | Mean CPU change/delta                                             |
+| **Memory Delta (MB)_mean**  | Float     | Mean change in memory (MB)                                        |
 
 ## 2. Table of Contents <a name='toc'></a>
 
@@ -27,13 +46,17 @@ This module also provides the following tool for implementing manual performance
 4. [Installation](#install)  
 5. [Configuration Options](#config)
    - [Timer Decorator Parameters](#tp)  
-   - [ErrorCatcher Decorator Parameters](#ep)  
+   - [ErrorCatcher Decorator Parameters](#ep)
+   - [`results.py`](#resultspy_config)
 6. [Usage](#usage)  
    - [Decorators](#decor)
      - [Example with the Timer decorator ](#timer_example)  
      - [Example with the ErrorCatcher decorator ](#error_example)  
      - [Example with both decorators combined ](#combined)
    - [`results.py`](#resultspy)
+     - [`get_metrics_start`](#usage_metrics)
+     - [`get_metrics_end`](#usage_metrics)
+     - [`results.py`](#running_results)
 7. [Customization ](#custom)
 8. [Contributing ](#contribute)  
    
@@ -129,6 +152,14 @@ Both decorators accept several optional arguments to customize their behavior.
 
 * **`max_arg_length (int or None, default=None)`**:  
   If set, function arguments are truncated to the specified maximum length when logged in the error results.
+
+### `results.py` Parameters <a name='resultspy_config'></a>
+
+* **`--logdir`**
+* **`--subtitle`**
+* **`--tag`**
+* **`--start-time`**
+* **`--end-time`**
 
 ## 6. Usage <a name='usage'></a>
 
@@ -229,7 +260,7 @@ except Exception as e:
 
 [Back to TOC](#toc)
 
-#### Applying benchmarking hooks <a name='hooks'></a>
+#### Applying metrics tracking <a name='usage_metrics'></a>
 
 ```python
 def my_function():
@@ -244,9 +275,9 @@ def my_function():
     return my_result
 ```
 
-#### Running the analysis tool:
+#### Running the analysis tool: <a name='running_results'></a>
 
-The script works in your CLI:
+The script works in your CLI. After running your script that produces logs, incorporating the decorators and tracking hooks, the `.log` file will include benchmarking information in raw form. The `results.py` script will scan the `.log` file and grab the most recent run of your script
 
 ```bash
 python results.py \
