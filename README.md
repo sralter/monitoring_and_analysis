@@ -4,30 +4,39 @@ By Samuel Alter
 
 ## 1. Overview <a name='overview'></a>
 
-A Python module for robust execution monitoring and error logging. This module provides two decorators:
-* **Timer**: Logs function execution time, CPU usage, memory usage, and captures function arguments. Performance data is saved to a CSV file and logged in JSON format.
-* **ErrorCatcher**: Catches and logs exceptions with a full traceback to a dedicated error log file using log rotation. Both decorators generate a unique UUID per function call for tracking.
+A Python module for robust execution monitoring, error logging, and analysis of the results. This module provides two decorators:
+* [**Timer**](#): Logs function execution time, CPU usage, memory usage, and captures function arguments. Performance data is saved to a CSV file and logged in JSON format.
+* [**ErrorCatcher**](#): Catches and logs exceptions with a full traceback to a dedicated error log file using log rotation. Both decorators generate a unique UUID per function call for tracking.
+Note: these decorators currently do not work for functions using multiprocessing.
 
-Note: this decorator is not working for functions using multiprocessing.
+This module also provides the following tool for implementing manual performance tracking and automated performance analysis. These tools are multiprocessing-safe.
+* [**`get_metrics_start()`**](#): Logs initial state and starts timer for execution time measurement.
+* [**`get_metrics_end()`**](#): Logs final state and calculates execution time since `get_metrics_start()` call.
+* [**results.py**](#): Automatically grabs the most-recent, dense cluster of timestamps (i.e., the most recent run of your code) from the `.log` file to aggregate and plot benchmarking data into the following figures:
+  * _Execution time per function_
+  * _Function call timeline_
+  * _Memory delta per function_
+  * _Top-10 functions by total time_
+  * _Histograms of execution time per function_
 
 ## 2. Table of Contents <a name='toc'></a>
 
-- [monitoring](#monitoring)
-  - [1. Overview ](#1-overview-)
-  - [2. Table of Contents ](#2-table-of-contents-)
-  - [3. Features ](#3-features-)
-  - [4. Installation ](#4-installation-)
-  - [5. Configuration Options ](#5-configuration-options-)
-    - [Timer Decorator Parameters ](#timer-decorator-parameters-)
-    - [ErrorCatcher Decorator Parameters ](#errorcatcher-decorator-parameters-)
-  - [6. Usage ](#6-usage-)
-    - [Example with the Timer decorator ](#example-with-the-timer-decorator-)
-    - [Example with the ErrorCatcher decorator ](#example-with-the-errorcatcher-decorator-)
-    - [Example with both decorators combined ](#example-with-both-decorators-combined-)
-  - [Customization ](#customization-)
-  - [Contributing ](#contributing-)
+1. [Overview](#overview)  
+2. [Table of Contents](#toc)  
+3. [Features](#features)  
+4. [Installation](#install)  
+5. [Configuration Options](#config)
+   - [Timer Decorator Parameters](#tp)  
+   - [ErrorCatcher Decorator Parameters](#ep)  
+6. [Usage](#usage)  
+   - [Decorators](#decor)
+     - [Example with the Timer decorator ](#timer_example)  
+     - [Example with the ErrorCatcher decorator ](#error_example)  
+     - [Example with both decorators combined ](#combined)
+   - [`results.py`](#resultspy)
+7. [Customization ](#custom)
+8. [Contributing ](#contribute)  
    
-
 ## 3. Features <a name='features'></a>
 
 [Back to TOC](#toc)
@@ -62,9 +71,9 @@ Simply copy the monitoring.py file into your project. Ensure that you have the f
 * `geopandas` (if you plan to log dataframes)
 * (Standard library modules such as `logging`, `csv`, `json`, `functools`, etc., are included with Python.)
 
-You can install `psutil` using `pip`:
+You can install `psutil` using `uv` and `pip`:
 ```bash
-pip install psutil
+uv pip install psutil
 ```
 
 ## 5. Configuration Options <a name='config'></a>
@@ -125,9 +134,11 @@ Both decorators accept several optional arguments to customize their behavior.
 
 [Back to TOC](#toc)
 
-Import the decorators from the module and apply them to your functions. You can use them individually or together.
+Import the decorators from the module and apply them to your functions. You can use them individually or together. Likewise with the `results.py` script.
 
-### Example with the Timer decorator <a name='timer_example'></a>
+### Decorators <a name='decor'></a>
+
+#### Example with the Timer decorator <a name='timer_example'></a>
 
 [Back to TOC](#toc)
 
@@ -154,7 +165,7 @@ print(f"Result: {result}")
 * A JSON-formatted log is written to `logs/timing.log`, which rotates once it reaches 10 MB.
 * Function arguments are sanitized and truncated as specified.
 
-### Example with the ErrorCatcher decorator <a name='error_example'></a>
+#### Example with the ErrorCatcher decorator <a name='error_example'></a>
 
 [Back to TOC](#toc)
 
@@ -180,7 +191,7 @@ except Exception as e:
 * The error log is written to `logs/error.log` with log rotation (default: 10 MB max, 5 backups).
 * The exception is re‑raised so you can catch it in your code.
 
-### Example with both decorators combined <a name='combined'></a>
+#### Example with both decorators combined <a name='combined'></a>
 
 [Back to TOC](#toc)
 
@@ -214,15 +225,49 @@ except Exception as e:
     print(f"Caught an exception: {e}")
 ```
 
+### `results.py` <a name='resultspy'></a>
+
+[Back to TOC](#toc)
+
+#### Applying benchmarking hooks <a name='hooks'></a>
+
+```python
+def my_function():
+    metrics_start = get_metrics_start()
+    if early_exit:
+        metrics_end = get_metrics_end(metrics_start=metrics_start)
+        return my_early_result
+
+    # function logic here...
+
+    metrics_end = get_metrics_end(metrics_start=metrics_start)
+    return my_result
+```
+
+#### Running the analysis tool:
+
+The script works in your CLI:
+
+```bash
+python results.py \
+  --logdir ./logs \
+  --subtitle "Run after memory tweaks" \
+  --tag memory_tweaks \
+  --start-time "2025-01-01 12:00:00" \
+  --end-time "2025-01-01 12:00:42"
+```
+
 ## Customization <a name='custom'></a>
 
 [Back to TOC](#toc)
 
-**Sanitization**:  
-Provide your own sanitizer function to remove or mask sensitive data from logged messages.
+### Performance Decorator Customization
 
-**Log Rotation Parameters**:  
-Both Timer and ErrorCatcher use rotating file handlers. You can adjust the max file size and backup count by passing parameters to the decorators if needed.
+* **Sanitization**:  
+  * Provide your own sanitizer function to remove or mask sensitive data from logged messages.
+  
+* **Log Rotation Parameters**:  
+  * Both Timer and ErrorCatcher use rotating file handlers. You can adjust the max file size and backup count by passing parameters to the decorators if needed.
 
 ## Contributing <a name='contribute'></a>
 
