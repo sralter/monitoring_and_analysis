@@ -42,7 +42,7 @@ def detect_recent_dense_block(log_lines, min_cluster_size=25, gap_seconds=30):
 
     This function examines a list of log lines (each containing a timestamp) and identifies clusters
     of timestamps where the gap between consecutive timestamps is less than or equal to `gap_seconds`.
-    If the gap_seconds are larger than 30 seconds, than the function will consider the clusters separate.
+    If the gap_seconds are larger than 30 seconds, then the function will consider the clusters separate.
     Only clusters with at least `min_cluster_size` timestamps are considered valid. The function
     returns the earliest and latest timestamps of the most recent (i.e., latest in time) valid cluster.
 
@@ -165,6 +165,7 @@ def generate_plots(df: pd.DataFrame, output_dir: Path, subtitle: str):
         df (pd.DataFrame): Table containing the parsed and organized performance metrics.
         output_dir (Path): Location of where the plots should be saved to.
         subtitle (str): Optional argument from script call to add informative subtitle to every plot.
+                        If an empty string is passed, no subtitle will be added.
     """
     sns.set_theme(style="whitegrid")
     font = {
@@ -255,11 +256,11 @@ def write_metadata(output_dir, start_time, end_time, subtitle, log_files):
     Metadata text file showing the parameters used in running the results.py script.
 
     Args:
-        output_dir (_type_): Output directory to save all files
-        start_time (_type_): Start time of run, user-defined or automatically determined.
-        end_time (_type_): End time of run, user-defined or automatically determined.
-        subtitle (_type_): Optional parameter to give helpful subtitle to every plot.
-        log_files (_type_): Title of the log file(s).
+        output_dir (Path): Output directory to save all files.
+        start_time (datetime): Start time of run, user-defined or automatically determined.
+        end_time (datetime): End time of run, user-defined or automatically determined.
+        subtitle (str): Subtitle used in the plots. If empty, no subtitle was applied.
+        log_files (iterable): List or iterable of log file paths used.
     """
     with open(output_dir / "README.txt", "w") as f:
         f.write("=== Timing Analysis Metadata ===\n")
@@ -272,11 +273,13 @@ def write_metadata(output_dir, start_time, end_time, subtitle, log_files):
 
 def main():
     """
-    Function for argument handling when running the function.
+    Function for argument handling when running the script.
     """
     parser = argparse.ArgumentParser(description="Parse timing logs and generate performance plots.")
     parser.add_argument("--logdir", type=str, required=True, help="Directory containing timing.log files")
-    parser.add_argument("--subtitle", type=str, required=False, help="Subtitle for all plots")
+    parser.add_argument("--subtitle", type=str, required=False, help='Subtitle for all plots. '
+                                                                     'Pass "none" to disable subtitles, '
+                                                                     'or omit to default to "start_time to end_time".')
     parser.add_argument("--tag", type=str, default="run", help="Folder name tag")
     parser.add_argument("--start-time", type=str, help="Optional override for start time (YYYY-MM-DD HH:MM:SS)")
     parser.add_argument("--end-time", type=str, help="Optional override for end time (YYYY-MM-DD HH:MM:SS)")
@@ -303,9 +306,14 @@ def main():
         end_time = end_time or detected_end
         print("Using auto-detected time window for missing value(s).")
 
-    # Set subtitle to default if not provided: "start_time to end_time"
-    if not args.subtitle:
+    # Determine subtitle mode:
+    #   - If --subtitle is not provided: default to "start_time to end_time"
+    #   - If --subtitle is provided as "none" (case insensitive): disable subtitle (empty string)
+    #   - Otherwise, use the user-provided subtitle.
+    if args.subtitle is None:
         subtitle = f"{start_time.strftime('%Y-%m-%d %H:%M:%S')} to {end_time.strftime('%Y-%m-%d %H:%M:%S')}"
+    elif args.subtitle.lower() == "none":
+        subtitle = ""
     else:
         subtitle = args.subtitle
 
