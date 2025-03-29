@@ -4,14 +4,13 @@ By Samuel Alter
 
 ## 1. Overview <a name='overview'></a>
 
-A Python module for robust execution monitoring, error logging, and benchmarking analysis. This module provides two decorators:
+A Python module for robust execution monitoring, error logging, and benchmarking analysis. This module provides two decorators, summarized below. **Note: these decorators currently do not work for functions using multiprocessing.**
 * [**Timer**](#tp):
   * Logs function execution time, CPU usage, memory usage, and captures function arguments. Performance data is saved to a CSV file and logged in JSON format.
 * [**ErrorCatcher**](#ep):
   * Catches and logs exceptions with a full traceback to a dedicated error log file using log rotation. Both decorators generate a unique UUID per function call for tracking.
-**Note: these decorators currently do not work for functions using multiprocessing.**
 
-This module also provides the following tools for implementing manual performance tracking and automated performance analysis. These tools are multiprocessing-safe.
+This module also provides the following tools for implementing manual performance tracking and automated performance analysis. **Note: These tools are multiprocessing-safe.**
 * [**`get_metrics_start()`**](#metrics_start):
   * Logs initial CPU and memory state and starts timer for execution time measurement.
 * [**`get_metrics_end()`**](#metrics_end):
@@ -50,9 +49,9 @@ This module also provides the following tools for implementing manual performanc
    - [`results.py`](#resultspy_config)
 6. [Usage](#usage)  
    - [Decorators](#decor)
-     - [Example with the Timer decorator ](#timer_example)  
-     - [Example with the ErrorCatcher decorator ](#error_example)  
-     - [Example with both decorators combined ](#combined)
+     - [Example with the `Timer` decorator](#timer_example)  
+     - [Example with the `ErrorCatcher` decorator](#error_example)  
+     - [Example with both decorators combined](#combined)
    - [`results.py`](#resultspy)
      - [`get_metrics_start`](#usage_metrics)
      - [`get_metrics_end`](#usage_metrics)
