@@ -3,7 +3,7 @@ import multiprocessing
 import pandas as pd
 import sys
 import os
-from monitoring import Timer  # Import the Timer class from monitoring.py
+from monitoring_and_analysis.monitoring import Timer  # Import the Timer class from monitoring.py
 
 # Set multiprocessing start method for compatibility
 if __name__ == "__main__":

@@ -1,0 +1,5 @@
+psutil==6.1.0
+pandas==1.5.3
+geopandas==0.10.2
+matplotlib==3.6.3
+seaborn==0.11.2
