@@ -13,9 +13,9 @@ A Python module for robust execution monitoring, error logging, and benchmarking
 
 This module also provides the following tools for implementing manual performance tracking and automated performance analysis. These tools are multiprocessing-safe.
 * [**`get_metrics_start()`**](#metrics_start):
-  * Logs initial state and starts timer for execution time measurement.
+  * Logs initial CPU and memory state and starts timer for execution time measurement.
 * [**`get_metrics_end()`**](#metrics_end):
-  * Logs final state and calculates execution time since `get_metrics_start()` call.
+  * Logs final CPU and memory state and calculates execution time since `get_metrics_start()` call.
 * [**results.py**](#results):
   * Automatically grabs the most-recent, dense cluster of timestamps (i.e., the most recent run of your code) from the `.log` file to aggregate and plot benchmarking data into the following figures:
     * _Execution time per function_
