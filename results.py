@@ -13,6 +13,15 @@ import seaborn as sns
 
 
 def load_all_log_lines(logdir: Path):
+    """
+    Gathers all .log file(s) contents into one object
+
+    Args:
+        logdir (Path): Location of the .log file(s)
+
+    Returns:
+        log_lines: Object containing all lines from the .log file(s)
+    """
     log_files = sorted(logdir.glob("timing.log*"))
     log_lines = []
     for file in log_files:
@@ -28,6 +37,26 @@ def load_all_log_lines(logdir: Path):
 
 
 def detect_recent_dense_block(log_lines, min_cluster_size=25, gap_seconds=30):
+    """
+    Detect the most recent cluster of densely occurring log entries.
+
+    This function examines a list of log lines (each containing a timestamp) and identifies clusters
+    of timestamps where the gap between consecutive timestamps is less than or equal to `gap_seconds`.
+    If the gap_seconds are larger than 30 seconds, than the function will consider the clusters separate.
+    Only clusters with at least `min_cluster_size` timestamps are considered valid. The function
+    returns the earliest and latest timestamps of the most recent (i.e., latest in time) valid cluster.
+
+    Parameters:
+        log_lines (list): A list of dictionaries, each containing a "timestamp" key formatted as "%Y-%m-%d %H:%M:%S,%f".
+        min_cluster_size (int, optional): Minimum number of timestamps required for a cluster to be considered valid. Default is 25.
+        gap_seconds (float, optional): Maximum allowed gap in seconds between consecutive timestamps in a cluster. Default is 30.
+
+    Returns:
+        tuple: A tuple (start_time, end_time) where:
+            - start_time (datetime): The earliest timestamp in the most recent valid cluster.
+            - end_time (datetime): The latest timestamp in the most recent valid cluster.
+            If no valid cluster is found, returns (None, None).
+    """
     timestamps = sorted([
         datetime.strptime(line["timestamp"], "%Y-%m-%d %H:%M:%S,%f")
         for line in log_lines
@@ -56,7 +85,18 @@ def detect_recent_dense_block(log_lines, min_cluster_size=25, gap_seconds=30):
     return min(most_recent), max(most_recent)
 
 
-def parse_log_lines(log_lines, start_time=None, end_time=None):
+def parse_log_lines(log_lines, start_time=None, end_time=None) -> pd.DataFrame:
+    """
+    Parses log lines to identify the performance metrics of the function.
+
+    Args:
+        log_lines: Object containing all the log lines.
+        start_time (optional): Start time of the run. Defaults to None.
+        end_time (optional): End time of the run. Defaults to None.
+
+    Returns:
+        pd.DataFrame: Compiled pd.DataFrame 
+    """
     filtered_lines = [
         line for line in log_lines
         if start_time <= datetime.strptime(line["timestamp"], "%Y-%m-%d %H:%M:%S,%f") <= end_time
@@ -117,7 +157,15 @@ def parse_log_lines(log_lines, start_time=None, end_time=None):
     return df, filtered_lines
 
 
-def generate_plots(df, output_dir, subtitle):
+def generate_plots(df: pd.DataFrame, output_dir: Path, subtitle: str):
+    """
+    Generates analytical plots and tables from extracted performance metrics.
+
+    Args:
+        df (pd.DataFrame): Table containing the parsed and organized performance metrics.
+        output_dir (Path): Location of where the plots should be saved to.
+        subtitle (str): Optional argument from script call to add informative subtitle to every plot.
+    """
     sns.set_theme(style="whitegrid")
     font = {
         'family': 'sans serif', 'color': 'grey',
@@ -132,7 +180,8 @@ def generate_plots(df, output_dir, subtitle):
     plt.figure(figsize=(12, 6))
     sns.boxplot(data=df, x="Function", y="Perf Duration (s)")
     plt.suptitle("Execution Time per Function")
-    plt.title(subtitle, fontdict=font, y=1.05)
+    if subtitle:
+        plt.title(subtitle, fontdict=font, y=1.05)
     plt.xticks(rotation=45)
     plt.grid(visible=True, axis='y')
     plt.tight_layout()
@@ -144,7 +193,8 @@ def generate_plots(df, output_dir, subtitle):
     sns.scatterplot(data=df, x="Start Seconds", y="Function", size="Perf Duration (s)",
                     hue="Perf Duration (s)", palette="coolwarm", sizes=(20, 200))
     plt.suptitle("Function Calls Over Time")
-    plt.title(subtitle, fontdict=font, y=1.05)
+    if subtitle:
+        plt.title(subtitle, fontdict=font, y=1.05)
     plt.xlabel("Time since start (seconds)")
     plt.grid(visible=True, axis='x')
     plt.tight_layout()
@@ -155,7 +205,8 @@ def generate_plots(df, output_dir, subtitle):
     plt.figure(figsize=(12, 6))
     sns.barplot(data=df, x="Function", y="Memory Delta (MB)")
     plt.suptitle("Memory Change per Function Call")
-    plt.title(subtitle, fontdict=font, y=1.05)
+    if subtitle:
+        plt.title(subtitle, fontdict=font, y=1.05)
     plt.xticks(rotation=45)
     plt.grid(visible=True, axis='y')
     plt.tight_layout()
@@ -175,19 +226,21 @@ def generate_plots(df, output_dir, subtitle):
     sns.barplot(data=df[df["Function"].isin(top_funcs)],
                 x="Function", y="Perf Duration (s)")
     plt.suptitle("Top 10 Functions by Total Time")
-    plt.title(subtitle, fontdict=font, y=1.05)
+    if subtitle:
+        plt.title(subtitle, fontdict=font, y=1.05)
     plt.xticks(rotation=45)
     plt.grid(visible=True, axis='y')
     plt.tight_layout()
     plt.savefig(output_dir / "top10_functions_by_total_time.png", bbox_inches='tight')
     plt.close()
 
-    # Histograms
+    # Histograms for each function
     for i, func in enumerate(df['Function'].unique()):
         plt.figure(figsize=(4, 4))
         sns.histplot(data=df[df["Function"] == func], x="Perf Duration (s)", bins=20)
         plt.suptitle(f"Perf Duration for '{func}'")
-        plt.title(subtitle, fontdict=font, y=1.05)
+        if subtitle:
+            plt.title(subtitle, fontdict=font, y=1.05)
         plt.tight_layout()
         plt.savefig(output_dir / f"hist_{i+1}_{func}_perf_duration.png", bbox_inches='tight')
         plt.close()
@@ -198,9 +251,19 @@ def generate_plots(df, output_dir, subtitle):
 
 
 def write_metadata(output_dir, start_time, end_time, subtitle, log_files):
+    """
+    Metadata text file showing the parameters used in running the results.py script.
+
+    Args:
+        output_dir (_type_): Output directory to save all files
+        start_time (_type_): Start time of run, user-defined or automatically determined.
+        end_time (_type_): End time of run, user-defined or automatically determined.
+        subtitle (_type_): Optional parameter to give helpful subtitle to every plot.
+        log_files (_type_): Title of the log file(s).
+    """
     with open(output_dir / "README.txt", "w") as f:
         f.write("=== Timing Analysis Metadata ===\n")
-        f.write(f"Log files used:\n")
+        f.write("Log files used:\n")
         for log in log_files:
             f.write(f"  - {log}\n")
         f.write(f"\nTime window: {start_time} → {end_time}\n")
@@ -208,6 +271,9 @@ def write_metadata(output_dir, start_time, end_time, subtitle, log_files):
 
 
 def main():
+    """
+    Function for argument handling when running the function.
+    """
     parser = argparse.ArgumentParser(description="Parse timing logs and generate performance plots.")
     parser.add_argument("--logdir", type=str, required=True, help="Directory containing timing.log files")
     parser.add_argument("--subtitle", type=str, required=False, help="Subtitle for all plots")
@@ -227,7 +293,7 @@ def main():
     start_time = datetime.strptime(args.start_time, "%Y-%m-%d %H:%M:%S") if args.start_time else None
     end_time = datetime.strptime(args.end_time, "%Y-%m-%d %H:%M:%S") if args.end_time else None
 
-    # Auto-detect if not provided
+    # Auto-detect start and end time if not provided
     if not start_time or not end_time:
         detected_start, detected_end = detect_recent_dense_block(log_lines)
         if not detected_start:
@@ -237,12 +303,19 @@ def main():
         end_time = end_time or detected_end
         print("Using auto-detected time window for missing value(s).")
 
+    # Set subtitle to default if not provided: "start_time to end_time"
+    if not args.subtitle:
+        subtitle = f"{start_time.strftime('%Y-%m-%d %H:%M:%S')} to {end_time.strftime('%Y-%m-%d %H:%M:%S')}"
+    else:
+        subtitle = args.subtitle
+
     timestamp_tag = end_time.strftime("%Y-%m-%d_%H-%M-%S")
     output_dir = Path("figs") / f"{timestamp_tag}_{args.tag}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Output directory: {output_dir}")
     print(f"Time window: {start_time} → {end_time}")
+    print(f"Subtitle: {subtitle}")
 
     df, filtered_lines = parse_log_lines(log_lines, start_time, end_time)
     if df.empty:
@@ -255,10 +328,9 @@ def main():
         for line in filtered_lines:
             f.write(json.dumps(line) + "\n")
 
-    generate_plots(df, output_dir, args.subtitle)
-    write_metadata(output_dir, start_time, end_time, args.subtitle, sorted(logdir.glob("timing.log*")))
+    generate_plots(df, output_dir, subtitle)
+    write_metadata(output_dir, start_time, end_time, subtitle, sorted(logdir.glob("timing.log*")))
     print("Analysis complete. Results written to:", output_dir)
-
 
 if __name__ == "__main__":
     main()
