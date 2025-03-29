@@ -63,7 +63,7 @@ This module also provides the following tools for implementing manual performanc
 
 [Back to TOC](#toc)
 
-* **High-Resolution Timing**: Uses time.perf_counter() for precise measurements.
+* **High-Resolution Timing**: Uses `time.perf_counter()` for precise measurements.
 * **Process-Specific Metrics**: Tracks CPU time and memory usage for your process.
 * **Structured Logging**: Outputs logs in JSON format for easy integration with log aggregation tools.
   * Saves log files in the working directory with the following structure:
@@ -82,6 +82,7 @@ This module also provides the following tools for implementing manual performanc
 * **Error Logging**: Separates error logging from performance logs for clarity and monitoring.
 * **Customizable Sanitation**: Optionally sanitize logged arguments or error messages to mask sensitive data.
 * **Log Rotation**: Automatically rotates log files (default: 10 MB max size, 5 backups).
+* **Performance Analysis**: Optional script can analyze the log files and output helpul charts for you to analyze the performance of your code, surfacing inefficiencies and areas for improvement.
 
 ## 4. Installation <a name='install'></a>
 
@@ -91,9 +92,11 @@ Simply copy the monitoring.py file into your project. Ensure that you have the f
 * `psutil`
 * `pandas`
 * `geopandas` (if you plan to log dataframes)
+* `matplotlib`
+* `seaborn`
 * (Standard library modules such as `logging`, `csv`, `json`, `functools`, etc., are included with Python.)
 
-You can install `psutil` using `uv` and `pip`:
+You can install these packages using `uv` and `pip`:
 ```bash
 uv pip install psutil
 ```
@@ -154,17 +157,24 @@ Both decorators accept several optional arguments to customize their behavior.
 
 ### `results.py` Parameters <a name='resultspy_config'></a>
 
-* **`--logdir`**
-* **`--subtitle`**
-* **`--tag`**
-* **`--start-time`**
-* **`--end-time`**
+* **`--logdir`** (required):
+  Points the script to the location of your `.log` files. It will automatically grab all log files and get the most-recent dense cluster of timestamps. They can be spread across your `.log` files.
+* **`--subtitle`** (optional):
+  Adds a common subtitle to every plot if the user wants to add helpful information. It defaults to the timestamp
+* **`--tag`** (optional, default='run'):
+  Optional name for the folder to add a short description. The folder will include the timestamp of the end of the run.
+* **`--start-time`** (optional):
+  Optional override for the start time of the run.
+* **`--end-time`** (optional ):
+  Optional override for the end time of the run.
 
 ## 6. Usage <a name='usage'></a>
 
 [Back to TOC](#toc)
 
-Import the decorators from the module and apply them to your functions. You can use them individually or together. Likewise with the `results.py` script.
+Import the decorators from the module and apply them to your functions. You can use them individually or together. 
+
+Likewise with the `results.py` script.
 
 ### Decorators <a name='decor'></a>
 
@@ -282,7 +292,7 @@ The script works in your CLI. After running your script that produces logs, inco
 python results.py \
   --logdir ./logs \
   --subtitle "Run after memory tweaks" \
-  --tag memory_tweaks \
+  --tag run_memory_tweak \
   --start-time "2025-01-01 12:00:00" \
   --end-time "2025-01-01 12:00:42"
 ```
