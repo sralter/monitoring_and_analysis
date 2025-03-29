@@ -118,7 +118,7 @@ def parse_log_lines(log_lines, start_time=None, end_time=None):
 
 
 def generate_plots(df, output_dir, subtitle):
-    sns.set(style="whitegrid")
+    sns.set_theme(style="whitegrid")
     font = {
         'family': 'sans serif', 'color': 'grey',
         'weight': 'normal', 'size': 10, 'style': 'italic'
@@ -210,7 +210,7 @@ def write_metadata(output_dir, start_time, end_time, subtitle, log_files):
 def main():
     parser = argparse.ArgumentParser(description="Parse timing logs and generate performance plots.")
     parser.add_argument("--logdir", type=str, required=True, help="Directory containing timing.log files")
-    parser.add_argument("--subtitle", type=str, required=True, help="Subtitle for all plots")
+    parser.add_argument("--subtitle", type=str, required=False, help="Subtitle for all plots")
     parser.add_argument("--tag", type=str, default="run", help="Folder name tag")
     parser.add_argument("--start-time", type=str, help="Optional override for start time (YYYY-MM-DD HH:MM:SS)")
     parser.add_argument("--end-time", type=str, help="Optional override for end time (YYYY-MM-DD HH:MM:SS)")
