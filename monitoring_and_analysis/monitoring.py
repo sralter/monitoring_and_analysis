@@ -23,6 +23,7 @@ def sanitizer(arg_str):
     return ''.join('*' if c.isdigit() else c for c in arg_str)
 
 class JSONFormatter(logging.Formatter):
+    """Formats JSON"""
     def format(self, record):
         log_record = {
             "timestamp": self.formatTime(record),
@@ -390,11 +391,13 @@ class ErrorCatcher:
     
 process = psutil.Process()
 def get_caller_name():
+    """Gets name of function that the get_metrics_* is in."""
     frame = inspect.currentframe()
     outer = inspect.getouterframes(frame)[2]  # skip self and calling helper
     return outer.function
 
 def get_metrics_start(func_name: str = None):
+    """Tracks initial performance metrics and adds a line in the log file."""
     if func_name is None:
         func_name = get_caller_name()
 
@@ -431,6 +434,7 @@ def get_metrics_start(func_name: str = None):
     return metrics
 
 def get_metrics_end(metrics_start: dict, func_name: str = None):
+    """Tracks final performance metrics, including duration, and adds line in .log file."""
     if func_name is None:
         func_name = metrics_start["func"]
 
