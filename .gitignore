@@ -178,3 +178,4 @@ logs/
 .venv
 archive/
 .ipynb
+.gitignore
