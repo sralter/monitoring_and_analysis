@@ -11,11 +11,11 @@ A Python module for robust execution monitoring, error logging, and benchmarking
   * Catches and logs exceptions with a full traceback to a dedicated error log file using log rotation. Both decorators generate a unique UUID per function call for tracking.
 
 This module also provides the following tools for implementing manual performance tracking and automated performance analysis. **Note: These tools are multiprocessing-safe.**
-* [**`get_metrics_start()`**](#resultspy):
+* [**`get_metrics_start()`**](#usage_metrics):
   * Logs initial CPU and memory state and starts timer for execution time measurement.
-* [**`get_metrics_end()`**](#resultspy):
+* [**`get_metrics_end()`**](#usage_metrics):
   * Logs final CPU and memory state and calculates execution time since `get_metrics_start()` call.
-* [**results.py**](#resultspy):
+* [**results.py**](#resultspy_config):
   * Automatically grabs the most-recent, dense cluster of timestamps (i.e., the most recent run of your code) from the `.log` file to aggregate and plot benchmarking data into the following figures:
     * _Execution time per function_
     * _Function call timeline_
