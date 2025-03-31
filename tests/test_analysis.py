@@ -45,8 +45,8 @@ def sample_df():
     return pd.DataFrame({
         "Function": ["func"] * 5,
         "Call ID": [f"id_{i}" for i in range(5)],
-        "Start Time": pd.date_range("2025-01-01", periods=5, freq="s"),
-        "End Time": pd.date_range("2025-01-01 00:00:01", periods=5, freq="s"),
+        "Start Time": pd.date_range("2025-01-01", periods=5, freq="1s"),
+        "End Time": pd.date_range("2025-01-01 00:00:01", periods=5, freq="1s"),
         "Wall Duration (s)": [1.0] * 5,
         "Perf Duration (s)": [0.9 + i * 0.01 for i in range(5)],
         "Duration (from log)": [1.0] * 5,
