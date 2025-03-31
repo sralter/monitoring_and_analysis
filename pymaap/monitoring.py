@@ -349,9 +349,11 @@ class ErrorCatcher:
     def _save_error(self, timestamp, call_uuid, function_name, error_msg, args_repr):
         """Save error details to the chosen results file format."""
         if self.results_format == "csv":
-            with open(self.RESULTS_FILE, mode="a", newline="") as file:
-                writer = csv.writer(file)
-                writer.writerow([timestamp, call_uuid, function_name, error_msg, args_repr])
+            columns = ["Timestamp", "UUID", "Function Name", "Error Message", "Arguments"]
+            row = [timestamp, call_uuid, function_name, error_msg, args_repr]
+            df = pd.DataFrame([row], columns=columns)
+            header = not os.path.exists(self.RESULTS_FILE) or os.path.getsize(self.RESULTS_FILE) == 0
+            df.to_csv(self.RESULTS_FILE, mode="a", header=header, index=False)
         elif self.results_format == "parquet":
             row = {
                 "Timestamp": timestamp,

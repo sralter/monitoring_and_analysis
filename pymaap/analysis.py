@@ -179,7 +179,7 @@ def generate_plots(df: pd.DataFrame, output_dir: Path, subtitle: str):
 
     # Execution time per function
     plt.figure(figsize=(12, 6))
-    sns.boxplot(data=df, x="Function", y="Perf Duration (s)")
+    sns.boxplot(data=df, x="Function", y="Perf Duration (s)", orient='v')
     plt.suptitle("Execution Time per Function")
     if subtitle:
         plt.title(subtitle, fontdict=font, y=1.05)
