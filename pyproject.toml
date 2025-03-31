@@ -9,7 +9,7 @@ description = "PyMAAP: Python Monitoring and Analysis Package"
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [{ name = "Samuel Alter" }]
-license = { text = "MIT" }
+license = "MIT"
 dependencies = [
   "geopandas>=1.0.0",
   "pandas>2.0",
