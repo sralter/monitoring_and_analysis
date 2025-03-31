@@ -169,10 +169,15 @@ class Timer:
                 self._write_parquet(row)
 
     def _write_csv(self, row):
-        """Write a row to the CSV file safely."""
-        with open(self.RESULTS_FILE, mode="a", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow(row)
+        """Write a row to the CSV file safely using pandas for consistent headers."""
+        columns = [
+            "Timestamp", "Process ID", "Thread Count", "UUID", "Function Name",
+            "Execution Time (s)", "CPU Time (sec)", "Memory Change (MB)",
+            "Final Memory Usage (MB)", "Arguments", "Log Message"
+        ]
+        df = pd.DataFrame([row], columns=columns)
+        header = not os.path.exists(self.RESULTS_FILE) or os.path.getsize(self.RESULTS_FILE) == 0
+        df.to_csv(self.RESULTS_FILE, mode="a", header=header, index=False)
 
     def _write_parquet(self, row):
         """Write a row to the Parquet file safely."""
