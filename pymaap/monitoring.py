@@ -149,7 +149,8 @@ class Timer:
         process_id = os.getpid()
         thread_count = multiprocessing.cpu_count()
         row = [
-            timestamp, process_id, thread_count, call_uuid, function_name, elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message
+            timestamp, process_id, thread_count, call_uuid, function_name, 
+            elapsed_time, cpu_time, mem_change, final_mem, args_repr, log_message
         ]
 
         if self.results_format == "csv":
@@ -183,14 +184,16 @@ class Timer:
         """Write a row to the Parquet file safely."""
         row_dict = {
             "Timestamp": row[0],
-            "UUID": row[1],
-            "Function Name": row[2],
-            "Execution Time (s)": row[3],
-            "CPU Time (sec)": row[4],
-            "Memory Change (MB)": row[5],
-            "Final Memory Usage (MB)": row[6],
-            "Arguments": row[7],
-            "Log Message": row[8]
+            "Process ID": row[1],
+            "Thread Count": row[2],
+            "UUID": row[3],
+            "Function Name": row[4],
+            "Execution Time (s)": row[5],
+            "CPU Time (sec)": row[6],
+            "Memory Change (MB)": row[7],
+            "Final Memory Usage (MB)": row[8],
+            "Arguments": row[9],
+            "Log Message": row[10]
         }
 
         # Read existing parquet file if it exists and append new data
