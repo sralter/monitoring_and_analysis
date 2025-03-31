@@ -13,23 +13,19 @@ if [[ -z $VERSION ]]; then
   exit 1
 fi
 
-# Clean old builds
+# Add git tag
+git tag "$VERSION"
+git push origin "$VERSION"
+
+# Clean previous builds
 rm -rf dist/ build/ *.egg-info
 
 # Generate changelog
-echo "Generating changelog..."
-git-cliff -t "$VERSION" -o CHANGELOG.md
-
-# Commit changelog if it changed
-if ! git diff --quiet CHANGELOG.md; then
-  git add CHANGELOG.md
-  git commit -m "docs: update changelog for $VERSION"
+if command -v git-cliff &> /dev/null && [ -f .gitcliff.toml ]; then
+  git-cliff -o CHANGELOG.md
+else
+  echo "Skipping changelog generation: git-cliff not found or config missing."
 fi
-
-# Add git tag & push
-git tag "$VERSION"
-git push origin "$VERSION"
-git push  # In case changelog commit was added
 
 # Build the package
 echo "Building package..."
@@ -44,12 +40,12 @@ else
   python -m twine upload dist/*
 fi
 
-# Create GitHub release (requires GitHub CLI)
-if command -v gh &> /dev/null; then
-  echo "Creating GitHub release..."
-  gh release create "$VERSION" --notes-file CHANGELOG.md
+# Confirm latest version view
+echo "View at:"
+if [[ $TARGET == "1" ]]; then
+  echo "https://test.pypi.org/project/pymaap/"
 else
-  echo "GitHub CLI (gh) not found. Skipping GitHub release creation."
+  echo "https://pypi.org/project/pymaap/"
 fi
 
 echo "Release complete: $VERSION"
