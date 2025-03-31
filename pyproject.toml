@@ -20,7 +20,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "pytest-html", "sphinx", "twine", "build"]
+dev = ["pytest", "pytest-cov", "pytest-html", "sphinx", "twine", "build", "pandas", "matplotlib", "seaborn"]
 
 [tool.setuptools.packages.find]
 include = ["pymaap*"]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:.*vert.*will be deprecated.*:PendingDeprecationWarning"
+]
