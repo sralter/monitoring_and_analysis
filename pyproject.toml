@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "PyMAAP: Python Monitoring and Analysis Package"
 readme = "README.md"
 requires-python = ">=3.8"
-authors = [{ name = "Samuel Alter" }]
+authors = [{ name = "Samuel Alter", email = 's.r.alter@icloud.com}]
 license = "MIT"
 dependencies = [
   "geopandas>=1.0.0",
