@@ -21,7 +21,7 @@ setup(
     ],
     extras_require={
         "dev": ["pytest", "pytest-cov", "pytest-html", "sphinx", "twine", "build"]
-    }
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
