@@ -20,7 +20,19 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "pytest-html", "sphinx", "twine", "build", "pandas", "matplotlib", "seaborn"]
+dev = [
+  "pytest", 
+  "pytest-cov", 
+  "pytest-html", 
+  "sphinx", 
+  "twine", 
+  "build", 
+  "pandas", 
+  "matplotlib", 
+  "seaborn", 
+  "setuptools-scm", 
+  "git-cliff"
+]
 
 [tool.setuptools.packages.find]
 include = ["pymaap*"]
