@@ -1,5 +1,5 @@
 # monitoring_and_analysis_package
-
+![CI](https://github.com/sralter/PyMAAP/actions/workflows/tests.yml/badge.svg)
 By Samuel Alter
 
 ## 1. Overview <a name='overview'></a>
