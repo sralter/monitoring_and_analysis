@@ -1,4 +1,4 @@
-name: Run Tests
+name: Run PyMAAP Tests
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 
 jobs:
   test:
+    name: Unit Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +23,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install pytest
+          pip install pytest pytest-cov pytest-html
 
-      - name: Run tests
-        run: pytest tests/
+      - name: Run tests with HTML + terminal coverage
+        run: |
+          pytest --cov=pymaap --cov-report=term --cov-report=html --html=pytest-report.html

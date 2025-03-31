@@ -1,10 +1,12 @@
+# tests/test_monitoring.py
+
 import time
 import multiprocessing
 import os
 import pandas as pd
 import pytest
-from monitoring_and_analysis.monitoring import Timer, ErrorCatcher, get_metrics_start, get_metrics_end
-from monitoring_and_analysis.analysis import analysis
+from pymaap.monitoring import Timer, ErrorCatcher, get_metrics_start, get_metrics_end
+from pymaap.analysis import analysis
 
 @pytest.fixture(scope="session", autouse=True)
 def clear_logs():

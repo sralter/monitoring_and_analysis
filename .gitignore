@@ -178,3 +178,6 @@ logs/
 .venv
 archive/
 .ipynb
+
+htmlcov/
+pytest-report.html

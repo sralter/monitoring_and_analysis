@@ -271,7 +271,7 @@ def write_metadata(output_dir, start_time, end_time, subtitle, log_files):
         f.write(f"Subtitle:    {subtitle}\n")
 
 
-def main():
+def analysis(args=None):
     """
     Function for argument handling when running the script.
     """
@@ -284,7 +284,7 @@ def main():
     parser.add_argument("--start-time", type=str, help="Optional override for start time (YYYY-MM-DD HH:MM:SS)")
     parser.add_argument("--end-time", type=str, help="Optional override for end time (YYYY-MM-DD HH:MM:SS)")
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     logdir = Path(args.logdir)
 
     log_lines = load_all_log_lines(logdir)
@@ -341,4 +341,4 @@ def main():
     print("Analysis complete. Results written to:", output_dir)
 
 if __name__ == "__main__":
-    main()
+    analysis()

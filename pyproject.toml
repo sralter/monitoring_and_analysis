@@ -1,3 +1,18 @@
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "PyMAAP"
+version = "0.1.0"
+description = "PyMAAP: Python Monitoring and Analysis Package"
+authors = [{ name = "Samuel Alter" }]
+dependencies = [
+    "pandas",
+    "psutil",
+    "pyarrow",
+    "matplotlib",
+    "seaborn",
+    "pytest",
+    "pytest-cov"
+]
