@@ -9,7 +9,7 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/sralter/pymaap",
-    packages=(include=["pymaap", "pymaap.*"]),
+    packages=find_packages(include=["pymaap", "pymaap.*"]),
     install_requires=[
         "psutil==6.1.0",
         "pandas==1.5.3",
