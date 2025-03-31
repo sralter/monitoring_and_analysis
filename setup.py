@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="monitoring_decorators",
+    name="monitoring_and_analysis",
     version="0.1.0",
     author="Samuel Alter",
     author_email="s.r.alter@icloud.com",
-    description="Python module for execution monitoring, error logging, and performance analysis.",
+    description="A package for function monitoring and performance analysis.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/sralter/monitoring_and_analysis",
@@ -15,7 +15,9 @@ setup(
         "pandas==1.5.3",
         "geopandas==0.10.2",
         "matplotlib==3.6.3",
-        "seaborn==0.11.2"
+        "seaborn==0.11.2",
+        "pytest",
+        "pytest-cov"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

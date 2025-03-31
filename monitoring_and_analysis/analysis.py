@@ -2,8 +2,8 @@ import argparse
 import json
 import re
 from pathlib import Path
-from collections import defaultdict, Counter
-from datetime import datetime, timedelta
+from collections import defaultdict
+from datetime import datetime
 import os
 import glob
 
