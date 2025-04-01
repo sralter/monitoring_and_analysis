@@ -1,4 +1,5 @@
 # pymaap/logging_backend.py
+
 import multiprocessing
 import atexit
 import json
@@ -49,10 +50,13 @@ def init_multiprocessing_logging(log_file="logs/timing.log"):
 
 def shutdown_multiprocessing_logging():
     global _log_queue, _writer_process
-    if _log_queue:
+    if _log_queue and _writer_process and _writer_process.is_alive():
         _log_queue.put("STOP")
-    if _writer_process:
         _writer_process.join()
+    # if _log_queue:
+    #     _log_queue.put("STOP")
+    # if _writer_process:
+    #     _writer_process.join()
 
 def get_log_queue():
     return _log_queue
@@ -75,7 +79,8 @@ def log_event(level, msg, extra=None):
         for k, v in extra.items():
             setattr(record, k, v)
 
-    if log_queue:
+    # Only main process should push to the queue; workers log to their own stderr
+    if log_queue and multiprocessing.current_process().name == "MainProcess":
         log_queue.put(record)
     else:
         logger = logging.getLogger("pymaap")

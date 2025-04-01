@@ -11,7 +11,13 @@ from pymaap.analysis import analysis
 from pymaap.logging_backend import init_multiprocessing_logging, shutdown_multiprocessing_logging
 
 @pytest.fixture(scope="session", autouse=True)
-init_multiprocessing_logging()
+def init_logging():
+    if multiprocessing.current_process().name == "MainProcess": # only main process should start listener
+        init_multiprocessing_logging()
+        yield
+        shutdown_multiprocessing_logging()
+    else:
+        yield  # Child processes should skip init
 
 @pytest.fixture(scope="session", autouse=True)
 def clear_logs():
@@ -36,6 +42,11 @@ def slow_parquet_mp(x): time.sleep(x)
 
 @ErrorCatcher(log_to_console=False, log_to_file=True, results_format="csv")
 def faulty(): return 1 / 0
+
+@ErrorCatcher(log_to_console=False, log_to_file=True, results_format="csv")
+def faulty_mp(x):
+    # This will raise ZeroDivisionError when x == 0
+    return 1 / x
 
 # ---- Tests ----
 
@@ -68,6 +79,17 @@ def test_parquet_multiprocessing():
     df = pd.read_parquet("logs/timing_results.parquet")
     assert len(df) >= 2
 
+def test_error_multiprocessing():
+    with multiprocessing.Pool(2) as pool:
+        # One succeeds, one raises ZeroDivisionError
+        with pytest.raises(ZeroDivisionError):
+            pool.map(faulty_mp, [1, 0])  # 1 is fine, 0 triggers division by zero
+
+    df = pd.read_csv("logs/error_results.csv")
+    assert len(df) >= 1
+    assert "Error Message" in df.columns
+    assert df["Error Message"].str.contains("division").any()
+
 def test_error_logging():
     with pytest.raises(ZeroDivisionError):
         faulty()
@@ -82,4 +104,8 @@ def test_manual_metrics_tracking():
     end = get_metrics_end(start, "manual_test")
     assert end["duration"] >= 1.0
 
-shutdown_multiprocessing_logging()
+def test_log_formatting():
+    df = pd.read_csv("logs/timing_results.csv")
+    assert "UUID" in df.columns
+    assert df["UUID"].str.len().gt(10).all()
+    assert df["Function Name"].str.contains("slow_").any()
