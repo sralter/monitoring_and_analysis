@@ -1,6 +1,7 @@
 # PyMAAP: Python Monitoring and Analysis Package
 
-By Samuel Alter
+By Samuel Alter  
+[Documentation](https://sralter.github.io/pymaap/)
 
 ## 0. Quickstart <a name='quickstart'></a>
 
