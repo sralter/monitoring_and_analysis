@@ -4,7 +4,27 @@ repo_url: https://github.com/sralter/pymaap
 theme:
   name: material
   palette:
-    scheme: slate
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.tabs.link
+plugins:
+  - search
 
 nav:
   - Home: index.md
