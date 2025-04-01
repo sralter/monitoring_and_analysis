@@ -65,7 +65,6 @@ def log_event(level, msg, extra=None):
     """
     Log an event to the appropriate backend: queue (if active) or std logging.
     """
-    log_queue = get_log_queue()
     record = logging.LogRecord(
         name="pymaap",
         level=level,
@@ -79,6 +78,7 @@ def log_event(level, msg, extra=None):
         for k, v in extra.items():
             setattr(record, k, v)
 
+    log_queue = get_log_queue()
     # Only main process should push to the queue; workers log to their own stderr
     if log_queue and multiprocessing.current_process().name == "MainProcess":
         log_queue.put(record)
