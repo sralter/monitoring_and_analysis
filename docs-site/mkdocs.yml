@@ -1,0 +1,12 @@
+site_name: PyMAAP
+site_url: https://sralter.github.io/pymaap
+repo_url: https://github.com/sralter/pymaap
+theme:
+  name: material
+  palette:
+    scheme: slate
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - API Reference: reference.md
