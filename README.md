@@ -1,4 +1,4 @@
-# monitoring_and_analysis_package
+# PyMAAP: Python Monitoring and Analysis Package
 
 By Samuel Alter
 
