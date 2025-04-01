@@ -13,6 +13,10 @@ import geopandas as gpd
 from logging.handlers import RotatingFileHandler, QueueHandler, QueueListener
 import inspect
 
+from pymaap.logging_backend import get_log_queue
+
+# --- Helpers ---
+
 def sanitizer(arg_str):
     """
     Example sanitizer that replaces any digits with '*'.
@@ -33,6 +37,37 @@ class JSONFormatter(logging.Formatter):
             "uuid": record.__dict__.get("uuid", "N/A")
         }
         return json.dumps(log_record)
+
+def log_event(level, msg, extra=None):
+    """
+    Log an event to the appropriate backend: queue (if active) or std logging.
+    """
+    log_queue = get_log_queue()
+    record = logging.LogRecord(
+        name="pymaap",
+        level=level,
+        pathname=__file__,
+        lineno=0,
+        msg=msg,
+        args=(),
+        exc_info=None
+    )
+    if extra:
+        for k, v in extra.items():
+            setattr(record, k, v)
+
+    if log_queue:
+        log_queue.put(record)
+    else:
+        logger = logging.getLogger("pymaap")
+        logger.setLevel(logging.INFO)
+        if not logger.handlers:
+            handler = logging.StreamHandler()
+            handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+            logger.addHandler(handler)
+        logger.handle(record)
+
+# --- Decorators ---
 
 class Timer:
     """
@@ -398,7 +433,9 @@ class ErrorCatcher:
                 self._save_error(timestamp, call_uuid, func.__name__, error_msg, args_repr)
                 raise
         return wrapper
-    
+
+# --- Manual benchmarking tools ---
+
 process = psutil.Process()
 def get_caller_name():
     """Gets name of function that the get_metrics_* is in."""
