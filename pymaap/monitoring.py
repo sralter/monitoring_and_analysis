@@ -13,7 +13,7 @@ import geopandas as gpd
 from logging.handlers import RotatingFileHandler, QueueHandler, QueueListener
 import inspect
 
-from pymaap.logging_backend import get_log_queue
+from pymaap.logging_backend import get_log_queue, log_event
 
 # --- Helpers ---
 
@@ -37,35 +37,6 @@ class JSONFormatter(logging.Formatter):
             "uuid": record.__dict__.get("uuid", "N/A")
         }
         return json.dumps(log_record)
-
-def log_event(level, msg, extra=None):
-    """
-    Log an event to the appropriate backend: queue (if active) or std logging.
-    """
-    log_queue = get_log_queue()
-    record = logging.LogRecord(
-        name="pymaap",
-        level=level,
-        pathname=__file__,
-        lineno=0,
-        msg=msg,
-        args=(),
-        exc_info=None
-    )
-    if extra:
-        for k, v in extra.items():
-            setattr(record, k, v)
-
-    if log_queue:
-        log_queue.put(record)
-    else:
-        logger = logging.getLogger("pymaap")
-        logger.setLevel(logging.INFO)
-        if not logger.handlers:
-            handler = logging.StreamHandler()
-            handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-            logger.addHandler(handler)
-        logger.handle(record)
 
 # --- Decorators ---
 
@@ -258,8 +229,8 @@ class Timer:
             try:
                 result = func(*args, **kwargs)
             except Exception as e:
-                logging.exception("Function `%s` raised an exception", func.__name__,
-                                  extra={"function_name": func.__name__, "uuid": call_uuid})
+                log_event(logging.ERROR, f"Function `{func.__name__}` raised an exception", 
+                          extra={"function_name": func.__name__, "uuid": call_uuid})
                 raise
     
             elapsed_time = time.perf_counter() - start_time
@@ -296,7 +267,8 @@ class Timer:
                 log_message += f", CPU Time: {cpu_time:.4f} sec, Memory Change: {mem_change:.4f} MB, Final Memory: {final_mem:.4f} MB"
             if self.log_to_console:
                 print(log_message)
-            logging.info(log_message, extra={"function_name": func.__name__, "uuid": call_uuid})
+            log_event(logging.INFO, log_message, extra={"function_name": func.__name__,
+                                                         "uuid": call_uuid})
     
             # Ensure only one process writes to the file at a time
             if self.log_to_file:
@@ -426,8 +398,9 @@ class ErrorCatcher:
                     "args": [self._safe_serialize(arg) for arg in args],
                     "kwargs": {k: self._safe_serialize(v) for k, v in kwargs.items()}
                 })
-                self.logger.exception(
-                    "Function `%s` raised an exception: %s", func.__name__, error_msg,
+                log_event(
+                    logging.ERROR,
+                    f"Function `{func.__name__}` raised an exception: {error_msg}",
                     extra={"function_name": func.__name__, "uuid": call_uuid}
                 )
                 self._save_error(timestamp, call_uuid, func.__name__, error_msg, args_repr)

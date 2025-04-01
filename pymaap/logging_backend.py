@@ -56,3 +56,32 @@ def shutdown_multiprocessing_logging():
 
 def get_log_queue():
     return _log_queue
+
+def log_event(level, msg, extra=None):
+    """
+    Log an event to the appropriate backend: queue (if active) or std logging.
+    """
+    log_queue = get_log_queue()
+    record = logging.LogRecord(
+        name="pymaap",
+        level=level,
+        pathname=__file__,
+        lineno=0,
+        msg=msg,
+        args=(),
+        exc_info=None
+    )
+    if extra:
+        for k, v in extra.items():
+            setattr(record, k, v)
+
+    if log_queue:
+        log_queue.put(record)
+    else:
+        logger = logging.getLogger("pymaap")
+        logger.setLevel(logging.INFO)
+        if not logger.handlers:
+            handler = logging.StreamHandler()
+            handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+            logger.addHandler(handler)
+        logger.handle(record)

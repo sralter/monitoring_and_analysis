@@ -5,8 +5,13 @@ import multiprocessing
 import os
 import pandas as pd
 import pytest
+
 from pymaap.monitoring import Timer, ErrorCatcher, get_metrics_start, get_metrics_end
 from pymaap.analysis import analysis
+from pymaap.logging_backend import init_multiprocessing_logging, shutdown_multiprocessing_logging
+
+@pytest.fixture(scope="session", autouse=True)
+init_multiprocessing_logging()
 
 @pytest.fixture(scope="session", autouse=True)
 def clear_logs():
@@ -49,14 +54,14 @@ def test_parquet_single():
     assert "Function Name" in df.columns
     assert df["Execution Time (s)"].max() > 0
 
-@pytest.mark.skip(reason="Multiprocessing currently not supported in Timer")
+# @pytest.mark.skip(reason="Multiprocessing currently not supported in Timer")
 def test_csv_multiprocessing():
     with multiprocessing.Pool(2) as pool:
         pool.map(slow_csv_mp, [0.5, 0.5])
     df = pd.read_csv("logs/timing_results.csv")
     assert len(df) >= 2
 
-@pytest.mark.skip(reason="Multiprocessing currently not supported in Timer")
+# @pytest.mark.skip(reason="Multiprocessing currently not supported in Timer")
 def test_parquet_multiprocessing():
     with multiprocessing.Pool(2) as pool:
         pool.map(slow_parquet_mp, [0.5, 0.5])
@@ -76,3 +81,5 @@ def test_manual_metrics_tracking():
     time.sleep(1)
     end = get_metrics_end(start, "manual_test")
     assert end["duration"] >= 1.0
+
+shutdown_multiprocessing_logging()
