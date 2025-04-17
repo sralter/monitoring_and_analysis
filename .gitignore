@@ -181,3 +181,4 @@ archive/
 
 htmlcov/
 pytest-report.html
+README_release.md

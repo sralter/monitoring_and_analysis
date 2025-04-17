@@ -49,11 +49,13 @@ class Timer:
     By default, results are saved as a CSV file. With results_format="parquet",
     results are stored in a Parquet file, appending a new row for each call.
     """
-    def __init__(self, log_to_console=True, log_to_file=True, track_resources=True, 
-                 max_arg_length=None, sanitize_func=None, results_format="csv",
-                 use_multiprocessing=False):
+    def __init__(self, log_to_console=True, log_to_file=True, backup_count=5,
+                 max_bytes=10*1024*1024,track_resources=True, max_arg_length=None, 
+                 sanitize_func=None, results_format="csv", use_multiprocessing=False):
         self.log_to_console = log_to_console
         self.log_to_file = log_to_file
+        self.max_bytes = max_bytes
+        self.backup_count = backup_count
         self.track_resources = track_resources
         self.max_arg_length = max_arg_length
         self.sanitize_func = sanitize_func
@@ -132,7 +134,8 @@ class Timer:
         log_queue = multiprocessing.Queue() if self.use_multiprocessing else None
     
         # Set up file logging with rotation
-        rotating_handler = RotatingFileHandler(self.LOG_FILE, maxBytes=10*1024*1024, backupCount=5)
+        rotating_handler = RotatingFileHandler(self.LOG_FILE, maxBytes=self.max_bytes, 
+                                               backupCount=self.backup_count)
         rotating_handler.setFormatter(JSONFormatter())
     
         # Set up console logging
