@@ -13,6 +13,10 @@ All notable changes to this project will be documented in this file.
 
 - update changelog for 0.1.8 [21be6ac…](https://github.com/sralter/pymaap/commit/21be6ac5180d1118dcc84016f4252f8d480136ee)
 
+- update changelog for v0.1.9.dev1+g21be6ac [d0c9cd9…](https://github.com/sralter/pymaap/commit/d0c9cd92088d823dafa7c386619ad6e39617514c)
+
+- update pyproject toml with setuptools_scm version name handling [1121d17…](https://github.com/sralter/pymaap/commit/1121d17c64dd1ee987613010e104605ac50cc32b)
+
 
 
 
