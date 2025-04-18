@@ -40,3 +40,17 @@ jobs:
         with:
           name: pytest-report-${{ matrix.python-version }}
           path: pytest-report.html
+
+      - name: Upload coverage report to gh-pages
+        if: ${{ matrix.python-version == '3.12' }}
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git fetch
+          git switch gh-pages
+          rm -rf reports/pymaap
+          mkdir -p reports/pymaap
+          cp -r htmlcov/* reports/pymaap/
+          git add reports/pymaap
+          git commit -m "Update coverage report for $GITHUB_SHA" || echo "No changes"
+          git push origin gh-pages

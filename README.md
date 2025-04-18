@@ -1,6 +1,7 @@
 # PyMAAP: Python Monitoring and Analysis Package
 
 ![Tests](https://github.com/sralter/pymaap/actions/workflows/test.yml/badge.svg)
+[![Coverage Report](https://img.shields.io/badge/coverage-html-blue)](https://sralter.github.io/pymaap/reports/pymaap/)
 
 By Samuel Alter  
 [Documentation](https://sralter.github.io/pymaap/)
