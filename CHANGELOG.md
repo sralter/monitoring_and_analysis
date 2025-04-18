@@ -7,6 +7,17 @@ All notable changes to this project will be documented in this file.
 
 
 
+- update changelog for v0.1.11 [4425031…](https://github.com/sralter/pymaap/commit/4425031bf508e56e2171a8c4886a79cde9b98603)
+
+- disable runner action for now [139b71b…](https://github.com/sralter/pymaap/commit/139b71b77d925bf93796451a180a708eb64d64cb)
+
+
+
+
+### 🔧 Chores
+
+
+
 - update changelog for v0.1.9 [e640c85…](https://github.com/sralter/pymaap/commit/e640c85aaeaf4112dc88cdc04b1a8bfeb430e477)
 
 - fix .post1 addition to version names [aaf0213…](https://github.com/sralter/pymaap/commit/aaf0213d2c010967e4643bafe1f5a7fbf79796d5)
