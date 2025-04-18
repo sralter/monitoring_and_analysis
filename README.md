@@ -1,5 +1,7 @@
 # PyMAAP: Python Monitoring and Analysis Package
 
+![Tests](https://github.com/sralter/pymaap/actions/workflows/test.yml/badge.svg)
+
 By Samuel Alter  
 [Documentation](https://sralter.github.io/pymaap/)
 
@@ -134,25 +136,35 @@ This module also provides the following tools for implementing manual performanc
 
 ## 2. Table of Contents <a name='toc'></a>
 
-1. [Overview](#overview)  
-2. [Table of Contents](#toc)  
-3. [Features](#features)  
-4. [Installation](#install)  
-5. [Configuration Options](#config)
-   - [Timer Decorator Parameters](#tp)  
-   - [ErrorCatcher Decorator Parameters](#ep)
-   - [`results.py`](#resultspy_config)
-6. [Usage](#usage)  
-   - [Decorators](#decor)
-     - [Example with the `Timer` decorator](#timer_example)  
-     - [Example with the `ErrorCatcher` decorator](#error_example)  
-     - [Example with both decorators combined](#combined)
-   - [`results.py`](#resultspy)
-     - [`get_metrics_start`](#usage_metrics)
-     - [`get_metrics_end`](#usage_metrics)
-     - [`results.py`](#running_results)
-7. [Customization ](#custom)
-8. [Contributing ](#contribute)  
+- [PyMAAP: Python Monitoring and Analysis Package](#pymaap-python-monitoring-and-analysis-package)
+  - [0. Quickstart ](#0-quickstart-)
+    - [Installation](#installation)
+    - [Monitoring Functions](#monitoring-functions)
+      - [Options:](#options)
+      - [This creates:](#this-creates)
+      - [Manual Metrics](#manual-metrics)
+    - [Analyzing Logs](#analyzing-logs)
+      - [CLI Options](#cli-options)
+      - [Example output structure](#example-output-structure)
+  - [1. Overview ](#1-overview-)
+  - [2. Table of Contents ](#2-table-of-contents-)
+  - [3. Features ](#3-features-)
+  - [4. Installation ](#4-installation-)
+  - [5. Configuration Options ](#5-configuration-options-)
+    - [Timer Decorator Parameters ](#timer-decorator-parameters-)
+    - [ErrorCatcher Decorator Parameters ](#errorcatcher-decorator-parameters-)
+    - [`results.py` Parameters ](#resultspy-parameters-)
+  - [6. Usage ](#6-usage-)
+    - [Decorators ](#decorators-)
+      - [Example with the Timer decorator ](#example-with-the-timer-decorator-)
+      - [Example with the ErrorCatcher decorator ](#example-with-the-errorcatcher-decorator-)
+      - [Example with both decorators combined ](#example-with-both-decorators-combined-)
+    - [`results.py` ](#resultspy-)
+      - [Applying metrics tracking ](#applying-metrics-tracking-)
+      - [Running the analysis tool: ](#running-the-analysis-tool-)
+  - [Customization ](#customization-)
+    - [Performance Decorator Customization](#performance-decorator-customization)
+  - [Contributing ](#contributing-)
    
 ## 3. Features <a name='features'></a>
 
