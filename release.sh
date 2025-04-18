@@ -26,7 +26,8 @@ echo "🔍 Running test suite..."
 pytest -v || error_exit "Tests failed. Aborting release."
 
 # Get version from setuptools_scm
-AUTO_VERSION=$(python -c "import setuptools_scm; print(setuptools_scm.get_version())") || error_exit "Could not determine version from setuptools_scm."
+AUTO_VERSION=$(python -c "import setuptools_scm; print(setuptools_scm.get_version())") \
+  || error_exit "Could not determine version from setuptools_scm."
 DEFAULT_TAG="v$AUTO_VERSION"
 
 # Confirm or override version tag
@@ -56,6 +57,22 @@ git push origin "$VERSION"
 # --- Clean builds ---
 rm -rf dist/ build/ *.egg-info
 
+# --- Build & Upload the package (from the exact tag) ---
+echo "🔧 Building package..."
+python -m build
+
+if [[ $TARGET == "1" ]]; then
+  echo "🚀 Uploading to TestPyPI..."
+  python -m twine upload --repository testpypi dist/*
+  URL="https://test.pypi.org/project/pymaap/"
+else
+  echo "🚀 Uploading to PyPI..."
+  python -m twine upload dist/*
+  URL="https://pypi.org/project/pymaap/"
+fi
+
+echo "✅ Package built & uploaded: $URL"
+
 # --- Generate changelog ---
 if command -v git-cliff &> /dev/null && [ -f .gitcliff.toml ]; then
   echo "📝 Generating CHANGELOG.md..."
@@ -72,22 +89,7 @@ if [ -f CHANGELOG.md ]; then
   echo "✅ CHANGELOG.md committed and pushed."
 fi
 
-# --- Build the package ---
-echo "🔧 Building package..."
-python -m build
-
-# --- Upload ---
-if [[ $TARGET == "1" ]]; then
-  echo "🚀 Uploading to TestPyPI..."
-  python -m twine upload --repository testpypi dist/*
-  URL="https://test.pypi.org/project/pymaap/"
-else
-  echo "🚀 Uploading to PyPI..."
-  python -m twine upload dist/*
-  URL="https://pypi.org/project/pymaap/"
-fi
-
-# --- Show success + open URL ---
+# --- Final success + open URL ---
 echo "✅ Release complete: $VERSION"
 echo "🌐 View your package at:"
 echo "$URL"
