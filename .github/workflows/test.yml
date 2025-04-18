@@ -32,5 +32,11 @@ jobs:
 
       - name: Run tests with HTML + terminal coverage
         run: |
-          pytest --cov=pymaap --cov-report=term --cov-report=html --html=pytest-report.html
-          pytest -v
+          pytest -v --cov=pymaap --cov-report=term --cov-report=html --html=pytest-report.html
+
+      - name: Upload pytest HTML report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: pytest-report-${{ matrix.python-version }}
+          path: pytest-report.html
