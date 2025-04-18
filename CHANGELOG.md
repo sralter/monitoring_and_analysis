@@ -7,6 +7,17 @@ All notable changes to this project will be documented in this file.
 
 
 
+- update changelog for v0.1.71 [0631039…](https://github.com/sralter/pymaap/commit/0631039cd0d02e85eda00b233582da3ffa749215)
+
+- change python version tests to just 3.11 and 3.12 [f9b4cdb…](https://github.com/sralter/pymaap/commit/f9b4cdb78542e02449c9ee51d25de9b5f562c123)
+
+
+
+
+### 🔧 Chores
+
+
+
 - fix changelog template for correct GitHub commit links [a82f957…](https://github.com/sralter/pymaap/commit/a82f957cb021a1af5fcd2134f8e613236ea8bca6)
 
 - try to fix extra spaces [67e71f2…](https://github.com/sralter/pymaap/commit/67e71f228a133f2bf7edb6afb21d9820031f7384)
