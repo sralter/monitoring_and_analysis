@@ -16,27 +16,16 @@ All notable changes to this project will be documented in this file.
 
 body = """
 {% set base_url = "https://github.com/sralter/pymaap" %}
-
 {% for group, commits in commits | group_by(attribute="group") %}
-
-{% if group == "feat" %}
-### ✨ Features
-{% elif group == "fix" %}
-### 🩹 Fixes
-{% elif group == "docs" %}
-### 📝 Docs
-{% elif group == "style" %}
-### 🎨 Style
-{% elif group == "refactor" %}
-### 🧹 Refactor
-{% elif group == "perf" %}
-### ⚡ Performance
-{% elif group == "test" %}
-### ✅ Tests
-{% elif group == "chore" %}
-### 🔧 Chores
-{% else %}
-### 📦 Other
+{% if group == "feat" %}### ✨ Features
+{% elif group == "fix" %}### 🩹 Fixes
+{% elif group == "docs" %}### 📝 Docs
+{% elif group == "style" %}### 🎨 Style
+{% elif group == "refactor" %}### 🧹 Refactor
+{% elif group == "perf" %}### ⚡ Performance
+{% elif group == "test" %}### ✅ Tests
+{% elif group == "chore" %}### 🔧 Chores
+{% else %}### 📦 Other
 {% endif %}
 
 {% for commit in commits %}
