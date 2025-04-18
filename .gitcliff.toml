@@ -48,4 +48,4 @@ tag_pattern           = "v[0-9]*"
 # === 4) How to render Unreleased + Tags ===
 [template]
 unreleased = "## [Unreleased]\n"
-tag        = "## [{{ tag }}] - {{ timestamp | date(format='%Y-%m-%d') }}\n"
+tag        = "## Version {{ tag | split(value=\"v\") | index(value=1) }} - {{ timestamp | date(format='%Y-%m-%d') }}\n"
