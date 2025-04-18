@@ -7,7 +7,18 @@ All notable changes to this project will be documented in this file.
 
 body = """
 {% for group, commits in commits | group_by(attribute="group") %}
-### {{ group | upper_first }}
+{% set group_names = {
+  "feat": "✨ Features",
+  "fix": "🩹 Fixes",
+  "docs": "📝 Docs",
+  "style": "🎨 Style",
+  "refactor": "🧹 Refactor",
+  "perf": "⚡ Performance",
+  "test": "✅ Tests",
+  "chore": "🔧 Chores",
+  "other": "📦 Other"
+} %}
+### {{ group_names.get(group, "📦 Other") }}
 {% for commit in commits %}
 - {{ commit.message | strip }} ([{{ commit.id | truncate(length=7) }}]({{ commit.link }}))
 {% endfor %}

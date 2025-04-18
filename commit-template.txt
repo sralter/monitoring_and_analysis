@@ -1,0 +1,21 @@
+# Commit Message (use the format below)
+#
+# <type>(optional-scope): short summary
+#
+# [optional body]
+#
+# -------------------------------
+# Valid types:
+#   feat     → new feature
+#   fix      → bug fix
+#   docs     → documentation only
+#   style    → formatting only (no logic)
+#   refactor → code restructure (no behavior change)
+#   perf     → performance improvement
+#   test     → adding or updating tests
+#   chore    → tooling, meta, release scripts
+#
+# Example:
+#   feat(timer): support backup_count argument
+#
+# Lines starting with '#' are ignored
