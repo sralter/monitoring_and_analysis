@@ -11,6 +11,9 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     strategy:
       matrix:
         python-version: [3.11, 3.12]
