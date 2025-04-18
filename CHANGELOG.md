@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file.
 
 - change python version tests to just 3.11 and 3.12 [f9b4cdb…](https://github.com/sralter/pymaap/commit/f9b4cdb78542e02449c9ee51d25de9b5f562c123)
 
+- update changelog for 0.1.8 [21be6ac…](https://github.com/sralter/pymaap/commit/21be6ac5180d1118dcc84016f4252f8d480136ee)
+
 
 
 
