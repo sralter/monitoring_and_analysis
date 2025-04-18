@@ -34,12 +34,12 @@ jobs:
         run: |
           pytest -v --cov=pymaap --cov-report=term --cov-report=html --html=pytest-report.html
 
-      - name: Upload pytest HTML report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: pytest-report-${{ matrix.python-version }}
-          path: pytest-report.html
+      # - name: Upload pytest HTML report
+      #   if: always()
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: pytest-report-${{ matrix.python-version }}
+      #     path: pytest-report.html
 
       - name: Upload coverage report to gh-pages
         if: ${{ matrix.python-version == '3.12' }}
