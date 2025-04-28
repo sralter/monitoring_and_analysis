@@ -7,6 +7,23 @@ All notable changes to this project will be documented in this file.
 
 
 
+- update changelog for v0.1.14 [dfa4b3d…](https://github.com/sralter/pymaap/commit/dfa4b3d3686c5085daf5808501cc9b5e1224b9e5)
+
+
+
+### 🎨 Style
+
+
+
+- change logging timestamp format to three decimal places [d1a4726…](https://github.com/sralter/pymaap/commit/d1a472611b216b786f1ae8b23b279b74b6fba363)
+
+
+
+
+### 🔧 Chores
+
+
+
 - update changelog for v0.1.13 [f6bb9dc…](https://github.com/sralter/pymaap/commit/f6bb9dccd74e145f4c666fd71bbc65dc7bbca8e9)
 
 
