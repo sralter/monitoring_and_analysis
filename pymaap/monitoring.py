@@ -16,6 +16,8 @@ from logging.handlers import RotatingFileHandler, QueueHandler, QueueListener
 import inspect
 
 from pymaap.logging_backend import get_log_queue, log_event
+from pymaap.logging_setup import init_general_logger
+logger = init_general_logger(__name__)
 
 # --- Helpers ---
 
@@ -98,7 +100,7 @@ class Timer:
                     writer = csv.writer(file)
                     writer.writerow(["Timestamp", "UUID", "Function Name", "Execution Time (s)", 
                                     "CPU Time (sec)", "Memory Change (MB)", "Final Memory Usage (MB)", "Arguments", "Log Message"])
-                    print(f"Created fresh {self.RESULTS_FILE}")
+                    logger.info(f"Created fresh {self.RESULTS_FILE}")
             except FileExistsError:
                 pass  # Another process has already created the file
 
@@ -109,14 +111,14 @@ class Timer:
                     df_empty = pd.DataFrame(columns=["Timestamp", "UUID", "Function Name", "Execution Time (s)", 
                                                     "CPU Time (sec)", "Memory Change (MB)", "Final Memory Usage (MB)", "Arguments", "Log Message"])
                     df_empty.to_parquet(self.RESULTS_FILE, index=False)
-                    print(f"Created fresh {self.RESULTS_FILE}")
+                    logger.info(f"Created fresh {self.RESULTS_FILE}")
                 except FileExistsError:
                     pass  # Another process has already created the file
 
         # Ensure log file exists
         try:
             with open(self.LOG_FILE, mode="x") as file:
-                print(f"Created fresh {self.LOG_FILE}")
+                logger.info(f"Created fresh {self.LOG_FILE}")
         except FileExistsError:
             pass  # Another process has already created the file
         
@@ -271,7 +273,7 @@ class Timer:
             if self.track_resources:
                 log_message += f", CPU Time: {cpu_time:.4f} sec, Memory Change: {mem_change:.4f} MB, Final Memory: {final_mem:.4f} MB"
             if self.log_to_console:
-                print(log_message)
+                logger.info(log_message)
             log_event(logging.INFO, log_message, extra={"function_name": func.__name__,
                                                          "uuid": call_uuid})
     
@@ -330,7 +332,7 @@ class ErrorCatcher:
                 with open(self.RESULTS_FILE, mode="w", newline="") as file:
                     writer = csv.writer(file)
                     writer.writerow(["Timestamp", "UUID", "Function Name", "Error Message", "Arguments"])
-                print(f"Created fresh {self.RESULTS_FILE}")
+                logger.info(f"Created fresh {self.RESULTS_FILE}")
     
     def _setup_error_logging(self):
         """Set up a dedicated logger for error catching with JSON formatting and log rotation."""

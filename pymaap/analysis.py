@@ -8,11 +8,12 @@ from collections import defaultdict
 from datetime import datetime
 import os
 import glob
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from pymaap.logging_setup import init_general_logger
+logger = init_general_logger(__name__)
 
 def load_all_log_lines(logdir: Path):
     """
@@ -291,7 +292,7 @@ def analysis(args=None):
 
     log_lines = load_all_log_lines(logdir)
     if not log_lines:
-        print("No valid log entries found in directory.")
+        logger.warning("No valid log entries found in directory.")
         return
 
     # Parse manual time overrides
@@ -302,11 +303,11 @@ def analysis(args=None):
     if not start_time or not end_time:
         detected_start, detected_end = detect_recent_dense_block(log_lines)
         if not detected_start:
-            print("Could not detect a recent cluster of calls.")
+            logger.warning("Could not detect a recent cluster of calls.")
             return
         start_time = start_time or detected_start
         end_time = end_time or detected_end
-        print("Using auto-detected time window for missing value(s).")
+        logger.info("Using auto-detected time window for missing value(s).")
 
     # Determine subtitle mode:
     #   - If --subtitle is not provided: default to "start_time to end_time"
@@ -323,13 +324,13 @@ def analysis(args=None):
     output_dir = Path("figs") / f"{timestamp_tag}_{args.tag}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"Output directory: {output_dir}")
-    print(f"Time window: {start_time} → {end_time}")
-    print(f"Subtitle: {subtitle}")
+    logger.info(f"Output directory: {output_dir}")
+    logger.info(f"Time window: {start_time} → {end_time}")
+    logger.info(f"Subtitle: {subtitle}")
 
     df, filtered_lines = parse_log_lines(log_lines, start_time, end_time)
     if df.empty:
-        print("No function calls found in selected time window.")
+        logger.warning("No function calls found in selected time window.")
         return
 
     # Save filtered raw logs
@@ -340,7 +341,7 @@ def analysis(args=None):
 
     generate_plots(df, output_dir, subtitle)
     write_metadata(output_dir, start_time, end_time, subtitle, sorted(logdir.glob("timing.log*")))
-    print("Analysis complete. Results written to:", output_dir)
+    logger.info("Analysis complete. Results written to:", output_dir)
 
 if __name__ == "__main__":
     analysis()

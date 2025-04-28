@@ -163,6 +163,7 @@ This module also provides the following tools for implementing manual performanc
     - [`results.py`](#resultspy)
       - [Applying metrics tracking](#usage_metrics)
       - [Running the analysis tool:](#running_results)
+    - [General Logging Facility](#general_logging)
   - [Customization](#custom)
     - [Performance Decorator Customization](#performance-decorator-customization)
   - [Contributing](#contribute)
@@ -404,6 +405,10 @@ python results.py \
   --start-time "2025-01-01 12:00:00" \
   --end-time "2025-01-01 12:00:42"
 ```
+
+### General Logging Facility <a name='general_logging'></a>
+
+
 
 ## Customization <a name='custom'></a>
 
