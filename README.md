@@ -408,7 +408,7 @@ python results.py \
 
 ### General Logging Facility <a name='general_logging'></a>
 
-PyMAAP now provides a single entry point for all application-level messages, with:
+PyMAAP also provides a single entry point for all application-level messages, with:
 
 - **Rotating file** (plain-text) at `<log_dir>/general.log`  
 - **Rotating file** (JSON) at `<log_dir>/general.json.log`  
