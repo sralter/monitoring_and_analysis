@@ -408,7 +408,47 @@ python results.py \
 
 ### General Logging Facility <a name='general_logging'></a>
 
+PyMAAP now provides a single entry point for all application-level messages, with:
 
+- **Rotating file** (plain-text) at `<log_dir>/general.log`  
+- **Rotating file** (JSON) at `<log_dir>/general.json.log`  
+- **Console output** (identical format)  
+
+All records include:
+1. **Timestamp** (`YYYY-MM-DD HH:MM:SS,mmm`)  
+2. **Log level** (INFO, WARNING, etc.)  
+3. **UUID** (unique per record)  
+4. **Logger name & function** (`[module.funcName]`)  
+5. **Your message**  
+
+#### Quickstart
+
+```python
+import logging
+import pymaap
+
+# initialize once (e.g. at program start)
+pymaap.init_general_logger(
+    log_dir="my_logs",
+    general_log="general.log",
+    json_log="general.json.log",
+)
+
+def multiply(x, y):
+    logging.info(f"multiplying {x} and {y}…")
+    return x * y
+
+if __name__ == "__main__":
+    multiply(3, 4)
+    # console:
+    # 2025-04-28 12:00:00,123 INFO 123e4567-e89b-12d3-a456-426655440000 [__main__.multiply] multiplying 3 and 4…
+    #
+    # Files created under my_logs/:
+    # • general.log        (plain-text, same format)  
+    # • general.json.log   (JSON objects, one per line)
+```
+
+Be sure to call `init_general_logger()` before your first `logging.*` call so handlers are installed.
 
 ## Customization <a name='custom'></a>
 
