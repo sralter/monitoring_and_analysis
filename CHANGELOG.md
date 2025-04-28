@@ -7,6 +7,27 @@ All notable changes to this project will be documented in this file.
 
 
 
+- update changelog for v0.1.13 [f6bb9dc…](https://github.com/sralter/pymaap/commit/f6bb9dccd74e145f4c666fd71bbc65dc7bbca8e9)
+
+
+
+### 🩹 Fixes
+
+
+
+- change default console_level to INFO rather than DEBUG [8bf8f9f…](https://github.com/sralter/pymaap/commit/8bf8f9f3b16c7ca0ecde4d6c0def1ca6fe500562)
+
+- make console printing to be more concise without uuid [4708542…](https://github.com/sralter/pymaap/commit/47085420a09e1a42396ef6ee1900e6ab8a2ecc67)
+
+- skip multiprocessing test functions for now, future release will handle multiprocessing [4961a63…](https://github.com/sralter/pymaap/commit/4961a63229cf904bae4dd117e9a0f730ce3cb9b7)
+
+
+
+
+### 🔧 Chores
+
+
+
 - update changelog for v0.1.12 [81bf1fb…](https://github.com/sralter/pymaap/commit/81bf1fb267701edfed7666348064489e55b7a45c)
 
 - add permissions for github actions bot [3b5bd4f…](https://github.com/sralter/pymaap/commit/3b5bd4f4f84e85db33d035049292314da84e93c0)
