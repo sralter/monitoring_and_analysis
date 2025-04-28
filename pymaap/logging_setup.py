@@ -47,7 +47,7 @@ def init_general_logger(
     json_log: Optional[str] = "general.json.log",
     max_bytes: int = 10 * 1024 * 1024,
     backup_count: int = 5,
-    console_level: int = logging.DEBUG,
+    console_level: int = logging.INFO,
 ) -> logging.Logger:
     """
     Initialize the general-purpose logger for PyMAAP.
