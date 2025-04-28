@@ -1,11 +1,11 @@
 # pymaap/logging_setup.py
 
 import logging
-import sys
 import uuid
 import json
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
+from logging import StreamHandler
 from typing import Optional
 import types
 
@@ -56,7 +56,7 @@ def init_general_logger(
       - RotatingFileHandler writing plain-text logs to <log_dir>/<general_log>
       - Optional RotatingFileHandler writing JSON logs to <log_dir>/<json_log>
       - Console output via print(), at the specified console_level
-    Each handler includes a UUIDFilter for unique IDs and uses a consistent formatter.
+    File handlers are verbose (include UUID), console handler is concise (no UUID).
 
     Parameters:
         name: Logger name. If None, configures the root logger.
@@ -89,9 +89,13 @@ def init_general_logger(
     uuid_filter = UUIDFilter()
     logger.addFilter(uuid_filter)
 
-    # Formatter for plain-text
-    text_fmt = logging.Formatter(
+    # Verbose plain-text formatter (for file handlers)
+    file_fmt = logging.Formatter(
         "%(asctime)s %(levelname)s %(uuid)s [%(name)s.%(funcName)s] %(message)s"
+    )
+    # Concise formatter for console (no UUID)
+    console_fmt = logging.Formatter(
+        "%(asctime)s %(levelname)s [%(name)s.%(funcName)s] %(message)s"
     )
 
     # Plain-text rotating file handler
@@ -101,9 +105,9 @@ def init_general_logger(
         backupCount=backup_count,
     )
     text_handler.setLevel(logging.DEBUG)
-    text_handler.setFormatter(text_fmt)
+    text_handler.setFormatter(file_fmt)
     text_handler.addFilter(uuid_filter)
-    # Custom naming for rotated backups: general.log.1.log, etc.
+    # Custom naming for rotated backups
     text_handler.namer = lambda name: f"{name}.log"
     logger.addHandler(text_handler)
 
@@ -117,15 +121,13 @@ def init_general_logger(
         json_handler.setLevel(logging.DEBUG)
         json_handler.setFormatter(JSONFormatter())
         json_handler.addFilter(uuid_filter)
-        # Custom naming for rotated backups: general.json.log.1.log, etc.
         json_handler.namer = lambda name: f"{name}.log"
         logger.addHandler(json_handler)
 
     # Console handler using print for capture-friendly output
-    from logging import StreamHandler
     console_handler = StreamHandler()
     console_handler.setLevel(console_level)
-    console_handler.setFormatter(text_fmt)
+    console_handler.setFormatter(console_fmt)
     console_handler.addFilter(uuid_filter)
 
     def emit(self, record: logging.LogRecord) -> None:
