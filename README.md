@@ -10,9 +10,10 @@ By Samuel Alter
 
 [Back to TOC](#toc)
 
-PyMAAP helps you monitor, log, and analyze the performance and behavior of your Python functions. It includes two main tools:
+PyMAAP helps you monitor, log, and analyze the performance and behavior of your Python functions. It includes three main tools:
 * `monitoring.py`: Decorators and tools to track performance, log errors, and save metrics.
 * `analysis.py`: CLI script to analyze log files and generate insightful plots.
+* `logging_setup.py`: Script to allow for logging statements to appear both in the console output and in a log file, allowing for the user to forgo the use of `print()`.
 
 ### Installation
 ```bash
@@ -164,6 +165,7 @@ This module also provides the following tools for implementing manual performanc
       - [Applying metrics tracking](#usage_metrics)
       - [Running the analysis tool:](#running_results)
     - [General Logging Facility](#general_logging)
+      - [Usage](#general-logging-usage)
   - [Customization](#custom)
     - [Performance Decorator Customization](#performance-decorator-customization)
   - [Contributing](#contribute)
@@ -421,7 +423,7 @@ All records include:
 4. **Logger name & function** (`[module.funcName]`)  
 5. **Your message**  
 
-#### Quickstart
+#### Usage <a name='general_logging_usage'></a>
 
 ```python
 import logging
@@ -436,12 +438,15 @@ pymaap.init_general_logger(
 
 def multiply(x, y):
     logging.info(f"multiplying {x} and {y}…")
+    result = x * y
+    logging.debug(f"Result is {result}")
     return x * y
 
 if __name__ == "__main__":
     multiply(3, 4)
     # console:
     # 2025-04-28 12:00:00,123 INFO 123e4567-e89b-12d3-a456-426655440000 [__main__.multiply] multiplying 3 and 4…
+    # 2025-04-28 12:00:00,123 INFO 123e4568-e89b-12d3-a456-426655440000 [__main__.multiply] Result is 12
     #
     # Files created under my_logs/:
     # • general.log        (plain-text, same format)  

@@ -1,5 +1,6 @@
 # pymaap/logging_setup.py
 
+import datetime
 import logging
 import uuid
 import json
@@ -8,7 +9,7 @@ from logging.handlers import RotatingFileHandler
 from logging import StreamHandler
 from typing import Optional
 import types
-
+from datetime import datetime
 
 class UUIDFilter(logging.Filter):
     """
@@ -18,28 +19,33 @@ class UUIDFilter(logging.Filter):
         record.uuid = str(uuid.uuid4())
         return True
 
-
 class JSONFormatter(logging.Formatter):
     """
-    Formats LogRecords as JSON objects, one per line.
+    Formats LogRecords as JSON objects, one per line,
+    with full microsecond precision in the timestamp.
     Fields: timestamp, level, message, function, uuid
     """
-    def formatTime(self, record: logging.LogRecord, datefmt: Optional[str] = None) -> str:
-        # Use base class formatting (future-proof override)
-        return super().formatTime(record, datefmt)
+    def formatTime(self, record, datefmt: Optional[str] = None) -> str:
+        # record.created is a float UNIX timestamp
+        dt = datetime.fromtimestamp(record.created)
+        if datefmt:
+            # strftime supports %f for microseconds
+            return dt.strftime(datefmt)
+        # fallback if no format given
+        return dt.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
     def format(self, record: logging.LogRecord) -> str:
-        timestamp = self.formatTime(record, "%Y-%m-%d %H:%M:%S,%f")[:-3]
+        # include full microseconds
+        timestamp = self.formatTime(record, "%Y-%m-%d %H:%M:%S.%f")[:-3]
         log_record = {
             "timestamp": timestamp,
-            "level": record.levelname,
-            "message": record.getMessage(),
-            "function": record.funcName or "N/A",
-            "uuid": getattr(record, "uuid", "N/A"),
+            "level":     record.levelname,
+            "message":   record.getMessage(),
+            "function":  record.funcName or "N/A",
+            "uuid":      getattr(record, "uuid", "N/A"),
         }
         return json.dumps(log_record)
-
-
+        
 def init_general_logger(
     name: Optional[str] = None,
     log_dir: str = "logs",
