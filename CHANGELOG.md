@@ -7,6 +7,59 @@ All notable changes to this project will be documented in this file.
 
 
 
+- update changelog for v0.1.12 [81bf1fb…](https://github.com/sralter/pymaap/commit/81bf1fb267701edfed7666348064489e55b7a45c)
+
+- add permissions for github actions bot [3b5bd4f…](https://github.com/sralter/pymaap/commit/3b5bd4f4f84e85db33d035049292314da84e93c0)
+
+
+
+### 📝 Docs
+
+
+
+- update readme to include explanation of logging helper [517ac52…](https://github.com/sralter/pymaap/commit/517ac525ff105a22632a2deeb657ca68a88c87d7)
+
+
+
+### ✨ Features
+
+
+
+- add general logging handling [87c9ef3…](https://github.com/sralter/pymaap/commit/87c9ef3d40e6cd547c7b406d9c6240219a5837df)
+
+
+
+### 🩹 Fixes
+
+
+
+- fix rotating handler behavior [840e8f6…](https://github.com/sralter/pymaap/commit/840e8f6cce9b9cde2ef023a299581a9b8c98aa2f)
+
+- change console level to debug, not info to capture all levels [e52a75f…](https://github.com/sralter/pymaap/commit/e52a75f7121d44e644ae9237a8b3bf8801769952)
+
+
+
+### 🧹 Refactor
+
+
+
+- swap print statements for logging statements [7e79f67…](https://github.com/sralter/pymaap/commit/7e79f67ca454f378965b861c078031b4b51a9d6c)
+
+
+
+### ✅ Tests
+
+
+
+- add general logger test script [09d40e3…](https://github.com/sralter/pymaap/commit/09d40e3f6a23cc165052e12a913b7fb917ed5a89)
+
+
+
+
+### 🔧 Chores
+
+
+
 - update changelog for v0.1.11 [4425031…](https://github.com/sralter/pymaap/commit/4425031bf508e56e2171a8c4886a79cde9b98603)
 
 - disable runner action for now [139b71b…](https://github.com/sralter/pymaap/commit/139b71b77d925bf93796451a180a708eb64d64cb)
