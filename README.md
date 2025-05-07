@@ -25,15 +25,26 @@ uv pip install pymaap
 Import the decorators and wrap your functions:
 
 ```python
+import pymaap
 from pymaap.monitoring import Timer, ErrorCatcher, sanitizer
 
 timer = Timer(results_format="csv", max_arg_length=200, sanitize_func=sanitizer)
 error_handler = ErrorCatcher(results_format="csv", sanitize_func=sanitizer)
 
+# initialize once (e.g. at program start)
+pymaap.init_general_logger(
+    log_dir="my_logs",
+    general_log="general.log",
+    json_log="general.json.log",
+)
+
 @error_handler
 @timer
 def my_function(x, y):
-    return x + y
+    logging.info(f"adding {x} and {y}…")
+    result = x + y
+    logging.debug(f"Result is {result}")
+    return result
 ```
 
 #### Options:
